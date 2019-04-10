@@ -11,8 +11,8 @@ space       [ \r\n\t]
 number      [0-9]+
 string		\"[^"]*\"
 id 			[a-zA-Z][a-zA-Z0-9]*
-mlcomment	"/*"([^*]|\*+[^*/])*\*+"/"
-comment		"//".*
+mlcomment	\/\*([^*]|\*+[^*/])*\*+\/
+comment		\/\/.*
 
 %%
 {space}     {}
