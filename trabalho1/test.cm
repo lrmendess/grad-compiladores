@@ -1,0 +1,11 @@
+/* Silly program that does nothing.
+ * Only variable declarations.
+**/
+
+void main(void) {
+    int x;
+    int y[10];
+    write("Hello");
+    write("Wor
+    ld");
+}

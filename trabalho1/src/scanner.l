@@ -9,7 +9,7 @@
 
 space       [ \r\n\t]
 number      [0-9]+
-string		\".*\"
+string		\"[^"]*\"
 id 			[a-zA-Z][a-zA-Z0-9]*
 mlcomment	"/*"([^*]|\*+[^*/])*\*+"/"
 comment		"//".*
