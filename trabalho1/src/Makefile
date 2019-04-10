@@ -1,6 +1,6 @@
 all:
 	flex scanner.l
-	gcc lex.yy.c -o scanner -lfl
+	gcc lex.yy.c -o trab1 -lfl
 
 clean:
-	rm scanner lex.yy.c
+	rm trab1 lex.yy.c
