@@ -14,8 +14,8 @@ comment			\/\/.*
 
 %%
 {space}     	{}
-{mlcomment}		{}
-{comment}		{}
+{mlcomment}		{} /* Leitura de comentarios multiline */
+{comment}		{} /* Leitura de comentarios singleline */
 "else"      	{ printf("%d: %s -> ELSE\n", yylineno, yytext); }
 "if"        	{ printf("%d: %s -> IF\n", yylineno, yytext); }
 "input"     	{ printf("%d: %s -> INPUT\n", yylineno, yytext); }
@@ -53,8 +53,4 @@ comment			\/\/.*
 int main() {
 	yylex();
 	return 0;
-}
-
-int yywrap() {
-	return 1;
 }
