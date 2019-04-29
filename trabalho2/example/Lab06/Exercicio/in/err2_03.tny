@@ -1,0 +1,4 @@
+{ Sample program in TINY language -
+  Program with syntax errors
+}
+x = 2; { ERROR: equality is not assignment }

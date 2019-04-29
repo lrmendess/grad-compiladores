@@ -1,0 +1,7 @@
+{ Sample program
+  in TINY language -
+  adds one to the input
+}
+read x;
+x := x + 1;
+write x;

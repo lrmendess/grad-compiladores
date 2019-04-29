@@ -1,0 +1,4 @@
+{ Sample program in TINY language -
+  Program with syntax errors
+}
+x := 0 { ERROR: missing semi-colon }

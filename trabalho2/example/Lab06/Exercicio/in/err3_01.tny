@@ -1,0 +1,7 @@
+{ Sample program
+  in TINY language -
+  program with semantic errors
+}
+x := 1 < 2; { error - Boolean value
+                  cannot be assigned }
+write 1 = 2; { also an error }

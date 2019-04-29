@@ -1,0 +1,7 @@
+{ Sample program in TINY language -
+  Program with syntax errors
+}
+read x;
+if x = 2 then
+    write x;
+write 0; { ERROR: missing end of if statement }
