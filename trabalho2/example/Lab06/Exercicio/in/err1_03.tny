@@ -1,4 +1,0 @@
-{ Sample program in TINY language -
-  Program with lexical errors
-}
-x := 4 # 2; { ERROR: unknown symbol '#' }

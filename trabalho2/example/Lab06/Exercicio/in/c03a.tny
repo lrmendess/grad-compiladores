@@ -1,9 +1,0 @@
-{ Sample program in TINY language -
-  basic loop test
-}
-
-x := 1;
-repeat
-    write x;
-    x := x + 1;
-until 5 < x
