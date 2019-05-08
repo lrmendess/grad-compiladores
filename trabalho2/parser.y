@@ -1,3 +1,6 @@
+/**
+ * Lucas Ribeiro Mendes Silva - 2016101236
+ */
 
 /* Options to bison */
 // File name of generated parser.
@@ -8,8 +11,6 @@
 %define parse.error verbose
 // Enable LAC (lookahead correction) to improve syntax error handling.
 %define parse.lac full
-// Enable the trace option so that debugging is possible.
-%define parse.trace
 
 %{
 #include <stdio.h>
@@ -20,18 +21,13 @@ void yyerror(char const *s);
 int yylineno;
 %}
 
-%token ELSE IF INPUT INT OUTPUT RETURN VOID WHILE WRITE
-%token SEMI
-%precedence LPAREN RPAREN
-%precedence LBRACE RBRACE
-%precedence LBRACK RBRACK
-%token NUM STRING ID UNKNOWN
+%token ELSE IF INPUT INT OUTPUT RETURN VOID WHILE WRITE ASSIGN SEMI COMMA
+%token LPAREN RPAREN LBRACK RBRACK LBRACE RBRACE NUM ID STRING
+%left LT LE GT GE EQ NEQ
 %left PLUS MINUS
 %left TIMES OVER
-%left LT LE GT GE
-%left EQ NEQ
-%left COMMA
-%right ASSIGN
+
+%start program
 
 %%
 program:
@@ -162,7 +158,6 @@ arithExpr:
 %%
 
 int main() {
-	yydebug = 0; // Enter debug mode.
 	yyparse();
 	puts("PARSE SUCCESSFUL!");
 	return 0;

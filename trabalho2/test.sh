@@ -31,3 +31,4 @@ make
 ./trab2 < in/err3_14.cm | diff out2/err3_14.out -
 ./trab2 < in/err3_15.cm | diff out2/err3_15.out -
 make clean
+

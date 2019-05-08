@@ -54,8 +54,8 @@ comment			\/\/.*
 "}"         	{ 	return RBRACE; 	}
 
 {number}		{ 	return NUM; 	}
-{string}		{ 	return STRING; 	}
 {id}			{ 	return ID; 		}
+{string}		{ 	return STRING; 	}
 
 . {
 	printf("SCANNING ERROR (%d): Unknown symbol %s\n", yylineno, yytext);
