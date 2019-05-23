@@ -23,6 +23,7 @@ int yylineno;
 
 LitTable* litTable;
 SymTable* symTable;
+FuncTable* funcTable;
 %}
 
 %token ELSE IF INPUT INT OUTPUT RETURN VOID WHILE WRITE SEMI COMMA
@@ -167,6 +168,7 @@ arithExpr:
 int main() {
 	litTable = create_lit_table();
 	symTable = create_sym_table();
+	funcTable = create_func_table();
 
 	yyparse();
 	puts("PARSE SUCCESSFUL!");
@@ -180,6 +182,8 @@ int main() {
 	free_sym_table(symTable);
 
 	printf("\n\n");
+	print_func_table(funcTable);
+	free_func_table(funcTable);
 
 	return 0;
 }

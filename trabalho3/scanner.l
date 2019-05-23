@@ -10,6 +10,10 @@
 #include <string.h>
 #include "parser.h"
 #include "tables.h"
+
+extern LitTable* litTable;
+extern SymTable* symTable;
+extern FuncTable* funcTable;
 %}
 
 space			[ \r\n\t]
@@ -57,7 +61,8 @@ comment			\/\/.*
 
 {number}		{ 	return NUM; 	}
 {id}			{ 	return ID; 		}
-{string}		{ 	return STRING; 	}
+
+{string} 		{ yylval = add_literal(litTable, yytext); return STRING; }
 
 . {
 	printf("SCANNING ERROR (%d): Unknown symbol %s\n", yylineno, yytext);

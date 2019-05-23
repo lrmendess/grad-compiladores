@@ -96,7 +96,7 @@ int get_sym_line(SymTable* st, int i) {
 }
 
 void print_sym_table(SymTable* st) {
-    printf("Symbols table:\n");
+    printf("Variables table:\n");
     for (int i = 0; i < st->size; i++) {
          printf("Entry %d -- name: %s, line: %d\n", i, get_sym_name(st, i), get_sym_line(st, i));
     }

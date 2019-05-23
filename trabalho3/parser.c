@@ -74,8 +74,9 @@ int yylineno;
 
 LitTable* litTable;
 SymTable* symTable;
+FuncTable* funcTable;
 
-#line 79 "parser.c" /* yacc.c:339  */
+#line 80 "parser.c" /* yacc.c:339  */
 
 # ifndef YY_NULLPTR
 #  if defined __cplusplus && 201103L <= __cplusplus
@@ -160,7 +161,7 @@ int yyparse (void);
 
 /* Copy the second part of user declarations.  */
 
-#line 164 "parser.c" /* yacc.c:358  */
+#line 165 "parser.c" /* yacc.c:358  */
 
 #ifdef short
 # undef short
@@ -437,13 +438,13 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint8 yyrline[] =
 {
-       0,    41,    41,    44,    45,    48,    51,    54,    57,    58,
-      61,    62,    65,    66,    69,    70,    73,    74,    77,    78,
-      81,    82,    85,    86,    89,    90,    93,    94,    95,    96,
-      97,   100,   103,   104,   105,   108,   109,   112,   115,   118,
-     119,   122,   123,   124,   127,   130,   133,   136,   139,   140,
-     143,   144,   147,   148,   149,   150,   151,   152,   155,   156,
-     157,   158,   159,   160,   161,   162,   163
+       0,    42,    42,    45,    46,    49,    52,    55,    58,    59,
+      62,    63,    66,    67,    70,    71,    74,    75,    78,    79,
+      82,    83,    86,    87,    90,    91,    94,    95,    96,    97,
+      98,   101,   104,   105,   106,   109,   110,   113,   116,   119,
+     120,   123,   124,   125,   128,   131,   134,   137,   140,   141,
+     144,   145,   148,   149,   150,   151,   152,   153,   156,   157,
+     158,   159,   160,   161,   162,   163,   164
 };
 #endif
 
@@ -1554,7 +1555,7 @@ yyreduce:
     switch (yyn)
       {
         
-#line 1558 "parser.c" /* yacc.c:1646  */
+#line 1559 "parser.c" /* yacc.c:1646  */
         default: break;
       }
     if (yychar_backup != yychar)
@@ -1794,12 +1795,13 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 165 "parser.y" /* yacc.c:1906  */
+#line 166 "parser.y" /* yacc.c:1906  */
 
 
 int main() {
 	litTable = create_lit_table();
 	symTable = create_sym_table();
+	funcTable = create_func_table();
 
 	yyparse();
 	puts("PARSE SUCCESSFUL!");
@@ -1813,6 +1815,8 @@ int main() {
 	free_sym_table(symTable);
 
 	printf("\n\n");
+	print_func_table(funcTable);
+	free_func_table(funcTable);
 
 	return 0;
 }
