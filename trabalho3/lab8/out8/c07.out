@@ -1,0 +1,14 @@
+PUTS: "Silly program.\n".
+PUTS: "Silly program.\n".
+
+
+Literals table:
+Entry 0 -- "Silly program.\n"
+
+
+Symbols table:
+Entry 0 -- name: longidentifier, line: 2
+Entry 1 -- name: xxxx, line: 5
+Entry 2 -- name: yyy, line: 7
+
+

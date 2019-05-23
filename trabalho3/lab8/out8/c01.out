@@ -1,0 +1,10 @@
+PUTS: "Hello, World!\n".
+
+
+Literals table:
+Entry 0 -- "Hello, World!\n"
+
+
+Symbols table:
+
+

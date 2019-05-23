@@ -1,0 +1,9 @@
+puts "Silly program.\n";
+int longidentifier;
+write 4 + 2;
+puts "Silly program.\n";
+int xxxx;
+xxxx := 4;
+int yyy;
+longidentifier := 4;
+yyy := longidentifier;
