@@ -12,8 +12,9 @@
 #include "tables.h"
 
 extern LitTable* litTable;
-extern SymTable* symTable;
+extern VarTable* varTable;
 extern FuncTable* funcTable;
+extern int currentScope;
 %}
 
 space			[ \r\n\t]
@@ -59,10 +60,10 @@ comment			\/\/.*
 "{"				{ 	return LBRACE; 	}
 "}"         	{ 	return RBRACE; 	}
 
-{number}		{ 	return NUM; 	}
-{id}			{ 	return ID; 		}
+{number}		{ 	yylval.integer = atoi(yytext); return NUM; 	}
+{id}			{	yylval.string = strdup(yytext); return ID; 	}
 
-{string} 		{ yylval = add_literal(litTable, yytext); return STRING; }
+{string} 		{ add_literal(litTable, yytext); return STRING; }
 
 . {
 	printf("SCANNING ERROR (%d): Unknown symbol %s\n", yylineno, yytext);

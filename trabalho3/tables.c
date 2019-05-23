@@ -51,58 +51,75 @@ void free_lit_table(LitTable* lt) {
 // Symbols Table
 // ----------------------------------------------------------------------------
 
-#define SYMBOL_MAX_SIZE 128
-#define SYMBOL_TABLE_MAX_SIZE 100
+#define VARIABLE_MAX_SIZE 128
+#define VARIABLE_TABLE_MAX_SIZE 100
 
 typedef struct {
-  char name[SYMBOL_MAX_SIZE];
-  int line;
-} Entry;
+    char name[VARIABLE_MAX_SIZE];
+    int line;
+    int scope;
+    int size;
+} VariableEntry;
 
-struct sym_table {
-    Entry t[SYMBOL_TABLE_MAX_SIZE];
+struct var_table {
+    VariableEntry t[VARIABLE_TABLE_MAX_SIZE];
     int size;
 };
 
-SymTable* create_sym_table() {
-    SymTable *st = malloc(sizeof * st);
+VarTable* create_var_table() {
+    VarTable *st = malloc(sizeof * st);
     st->size = 0;
     return st;
 }
 
-int lookup_var(SymTable* st, char* s) {
+int lookup_var(VarTable* st, char* s, int currentScope) {
     for (int i = 0; i < st->size; i++) {
-        if (strcmp(st->t[i].name, s) == 0)  {
+//      Checa se uma variavel de mesmo escopo esta na tabela de variaveis
+        if ((strcmp(st->t[i].name, s) == 0) && (st->t[i].scope == currentScope)) {
             return i;
         }
     }
     return -1;
 }
 
-int add_var(SymTable* st, char* s, int line) {
+int add_var(VarTable* st, char* s, int line, int scope, int size) {
     strcpy(st->t[st->size].name, s);
     st->t[st->size].line = line;
+    st->t[st->size].scope = scope;
+    st->t[st->size].size = size;
     int idx_added = st->size;
     st->size++;
     return idx_added;
 }
 
-char* get_sym_name(SymTable* st, int i) {
+char* get_var_name(VarTable* st, int i) {
     return st->t[i].name;
 }
 
-int get_sym_line(SymTable* st, int i) {
+int get_var_line(VarTable* st, int i) {
     return st->t[i].line;
 }
 
-void print_sym_table(SymTable* st) {
+int get_var_scope(VarTable* st, int i) {
+    return st->t[i].scope;
+}
+
+int get_var_size(VarTable* st, int i) {
+    return st->t[i].size;
+}
+
+void print_var_table(VarTable* st) {
     printf("Variables table:\n");
     for (int i = 0; i < st->size; i++) {
-         printf("Entry %d -- name: %s, line: %d\n", i, get_sym_name(st, i), get_sym_line(st, i));
+        printf("Entry %d -- name: %s, line: %d, scope: %d, size: %d\n", i,
+        get_var_name(st, i),
+        get_var_line(st, i),
+        get_var_scope(st, i),
+        get_var_size(st, i));
     }
 }
 
-void free_sym_table(SymTable* st) {
+void free_var_table(VarTable* st) {
     free(st);
 }
 
@@ -113,8 +130,9 @@ void free_sym_table(SymTable* st) {
 #define FUNCTION_TABLE_MAX_SIZE 100
 
 typedef struct {
-  char name[FUNCTION_MAX_SIZE];
-  int line;
+    char name[FUNCTION_MAX_SIZE];
+    int line;
+    int arity;
 } FunctionEntry;
 
 struct func_table {
@@ -137,9 +155,10 @@ int lookup_func(FuncTable* fn, char* s) {
     return -1;
 }
 
-int add_func(FuncTable* fn, char* s, int line) {
+int add_func(FuncTable* fn, char* s, int line, int arity) {
     strcpy(fn->t[fn->size].name, s);
     fn->t[fn->size].line = line;
+    fn->t[fn->size].arity = arity;
     int idx_added = fn->size;
     fn->size++;
     return idx_added;
@@ -153,10 +172,18 @@ int get_func_line(FuncTable* fn, int i) {
     return fn->t[i].line;
 }
 
+int get_func_arity(FuncTable* fn, int i) {
+    return fn->t[i].arity;
+}
+
 void print_func_table(FuncTable* fn) {
     printf("Functions table:\n");
     for (int i = 0; i < fn->size; i++) {
-         printf("Entry %d -- name: %s, line: %d\n", i, get_func_name(fn, i), get_func_line(fn, i));
+        printf("Entry %d -- name: %s, line: %d, arity: %d\n", i,
+            get_func_name(fn, i),
+            get_func_line(fn, i),
+            get_func_arity(fn, i)
+        );
     }
 }
 

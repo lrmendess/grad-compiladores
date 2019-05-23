@@ -15,14 +15,25 @@
 %{
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "tables.h"
 
 int yylex(void);
 void yyerror(char const *s);
 int yylineno;
+char* yytext;
+
+void addVar();
+void validVar(char* varName);
+void addFunc(char* funcName);
+void validFunc(char* funcName);
+
+int currentScope = 0;
+
+int params = 0;
 
 LitTable* litTable;
-SymTable* symTable;
+VarTable* varTable;
 FuncTable* funcTable;
 %}
 
@@ -34,6 +45,15 @@ FuncTable* funcTable;
 %left PLUS MINUS
 %left TIMES OVER
 %right ASSIGN
+
+%union
+{
+    int integer;
+    char* string;
+}
+
+%type<integer> NUM
+%type<string> ID
 
 %start program
 
@@ -49,10 +69,10 @@ funcDecl:
 	funcHeader funcBody;
 
 funcHeader:
-	retType ID LPAREN params RPAREN;
+	retType ID LPAREN params RPAREN { addFunc($2); params = 0; };
 
 funcBody:
-	LBRACE optVarDecl optStmtList RBRACE;
+	LBRACE optVarDecl optStmtList RBRACE { currentScope++; };
 
 optVarDecl:
 	%empty
@@ -75,16 +95,16 @@ paramList:
 |	param;
 
 param:
-	INT ID
-|	INT ID LBRACK RBRACK;
+	INT ID { addVar($2, 0); params++; }
+|	INT ID LBRACK RBRACK { addVar($2, -1); params++; };
 
 varDeclList:
 	varDeclList varDecl
 |	varDecl;
 
 varDecl:
-	INT ID SEMI
-|	INT ID LBRACK NUM RBRACK SEMI;
+	INT ID SEMI { addVar($2, 0); }
+|	INT ID LBRACK NUM RBRACK SEMI { addVar($2, $4); };
 
 stmtList:
 	stmtList stmt
@@ -101,9 +121,9 @@ assignStmt:
 	lval ASSIGN arithExpr SEMI;
 
 lval:
-	ID
-|	ID LBRACK NUM RBRACK
-|	ID LBRACK ID RBRACK;
+	ID { validVar($1); }
+|	ID LBRACK NUM RBRACK { validVar($1); }
+|	ID LBRACK ID RBRACK { validVar($1); validVar($3); };
 
 ifStmt:
 	IF LPAREN boolExpr RPAREN block
@@ -134,15 +154,15 @@ writeCall:
 	WRITE LPAREN STRING RPAREN;
 
 userFuncCall:
-	ID LPAREN optArgList RPAREN;
+	ID LPAREN optArgList RPAREN { validFunc($1); params = 0; };
 
 optArgList:
 	%empty
 |	argList;
 
 argList:
-	argList COMMA arithExpr
-|	arithExpr;
+	argList COMMA arithExpr { params++; }
+|	arithExpr { params++; };
 
 boolExpr:
 	arithExpr LT arithExpr
@@ -167,19 +187,19 @@ arithExpr:
 
 int main() {
 	litTable = create_lit_table();
-	symTable = create_sym_table();
+	varTable = create_var_table();
 	funcTable = create_func_table();
 
 	yyparse();
 	puts("PARSE SUCCESSFUL!");
 
-	printf("\n\n");
+	printf("\n");
 	print_lit_table(litTable);
 	free_lit_table(litTable);
 
 	printf("\n\n");
-	print_sym_table(symTable);
-	free_sym_table(symTable);
+	print_var_table(varTable);
+	free_var_table(varTable);
 
 	printf("\n\n");
 	print_func_table(funcTable);
@@ -191,4 +211,56 @@ int main() {
 void yyerror (char const *s) {
 	printf("PARSE ERROR (%d): %s\n", yylineno, s);
 	exit(EXIT_FAILURE);
+}
+
+void addVar(char* varName, int size) {
+	int index = lookup_var(varTable, varName, currentScope);
+
+	if (index == -1) {
+		add_var(varTable, varName, yylineno, currentScope, size);
+	} else {
+		printf("SEMANTIC ERROR (%d): variable '%s' already declared at line %d.\n",
+			yylineno, varName, get_var_line(varTable, index));
+		exit(EXIT_FAILURE);
+	}
+}
+
+void validVar(char* varName) {
+	int index = lookup_var(varTable, varName, currentScope);
+
+	if (index == -1) {
+		printf("SEMANTIC ERROR (%d): variable '%s' was not declared.\n",
+			yylineno, varName);
+		exit(EXIT_FAILURE);
+	}
+}
+
+void addFunc(char* funcName) {
+	int index = lookup_func(funcTable, funcName);
+	
+	if (index == -1) {
+		add_func(funcTable, funcName, yylineno, params);
+	} else {
+		printf("SEMANTIC ERROR (%d): function '%s' already declared at line %d.\n",
+			yylineno, funcName, get_var_line(varTable, index));
+		exit(EXIT_FAILURE);
+	}
+}
+
+void validFunc(char* funcName) {
+	int index = lookup_func(funcTable, funcName);
+
+	if (index == -1) {
+		printf("SEMANTIC ERROR (%d): function '%s' was not declared.\n",
+			yylineno, funcName);
+		exit(EXIT_FAILURE);
+	} else {
+		int arity = get_func_arity(funcTable, index);
+
+		if (arity != params) {
+			printf("SEMANTIC ERROR (%d): function '%s' was called with %d arguments"
+			" but declared with %d parameters.\n", yylineno, funcName, params, arity);
+			exit(EXIT_FAILURE);
+		}
+	}
 }

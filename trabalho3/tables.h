@@ -33,33 +33,37 @@ void free_lit_table(LitTable* lt);
 // Opaque structure.
 // For simplicity, the table is implemented as a sequential list.
 // This table only stores the variable name and the declaration line.
-struct sym_table;
-typedef struct sym_table SymTable;
+struct var_table;
+typedef struct var_table VarTable;
 
 // Creates an empty symbol table.
-SymTable* create_sym_table();
+VarTable* create_var_table();
 
 // Adds a fresh var to the table.
 // No check is made by this function, so make sure to call 'lookup_var' first.
 // Returns the index where the variable was inserted.
-int add_var(SymTable* st, char* s, int line);
+int add_var(VarTable* st, char* s, int line, int scope, int size);
 
 // Returns the index where the given variable is stored or -1 otherwise.
-int lookup_var(SymTable* st, char* s);
+int lookup_var(VarTable* st, char* s, int currentScope);
 
 // Returns the variable name stored at the given index.
 // No check is made by this function, so make sure that the index is valid first.
-char* get_sym_name(SymTable* st, int i);
+char* get_var_name(VarTable* st, int i);
 
 // Returns the declaration line of the variable stored at the given index.
 // No check is made by this function, so make sure that the index is valid first.
-int get_sym_line(SymTable* st, int i);
+int get_var_line(VarTable* st, int i);
+
+int get_var_scope(VarTable* st, int i);
+
+int get_var_size(VarTable* st, int i);
 
 // Prints the given table to stdout.
-void print_sym_table(SymTable* st);
+void print_var_table(VarTable* st);
 
 // Clears the allocated structure.
-void free_sym_table(SymTable* st);
+void free_var_table(VarTable* st);
 
 
 // Functions Table
@@ -77,7 +81,7 @@ FuncTable* create_func_table();
 // Adds a fresh func to the table.
 // No check is made by this function, so make sure to call 'lookup_var' first.
 // Returns the index where the function was inserted.
-int add_func(FuncTable* fn, char* s, int line);
+int add_func(FuncTable* fn, char* s, int line, int arity);
 
 // Returns the index where the given function is stored or -1 otherwise.
 int lookup_func(FuncTable* fn, char* s);
@@ -89,6 +93,8 @@ char* get_func_name(FuncTable* fn, int i);
 // Returns the declaration line of the function stored at the given index.
 // No check is made by this function, so make sure that the index is valid first.
 int get_func_line(FuncTable* fn, int i);
+
+int get_func_arity(FuncTable* fn, int i);
 
 // Prints the given table to stdout.
 void print_func_table(FuncTable* fn);
