@@ -49,7 +49,7 @@ FuncTable* funcTable;
 %union
 {
     int integer;
-    char* string;
+    char string[128];
 }
 
 %type<integer> NUM

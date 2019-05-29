@@ -60,10 +60,21 @@ comment			\/\/.*
 "{"				{ 	return LBRACE; 	}
 "}"         	{ 	return RBRACE; 	}
 
-{number}		{ 	yylval.integer = atoi(yytext); return NUM; 	}
-{id}			{	yylval.string = strdup(yytext); return ID; 	}
+{number} {
+	yylval.integer = atoi(yytext);
+	return NUM;
+}
 
-{string} 		{ add_literal(litTable, yytext); return STRING; }
+{id} {
+	memset(yylval.string, 0, 128);
+	strcpy(yylval.string, yytext);
+	return ID;
+}
+
+{string} {
+	add_literal(litTable, yytext);
+	return STRING;
+}
 
 . {
 	printf("SCANNING ERROR (%d): Unknown symbol %s\n", yylineno, yytext);
