@@ -23,15 +23,28 @@ void yyerror(char const *s);
 int yylineno;
 char* yytext;
 
-void addVar();
+/**
+ * Adiciona uma variavel na tabela de variaveis com seu tamanho
+ */
+void addVar(char* varName, int size);
+/**
+ * Valida se uma variavel existe de acordo com seu nome e escopo
+ */
 void validVar(char* varName);
+/**
+ * Adiciona uma funcao na tabela de funcoes com sua aridade
+ */
 void addFunc(char* funcName);
+/**
+ * Valida se uma funcao existe de acordo com seu nome e numero de parametros
+ */
 void validFunc(char* funcName);
 
+// Escopo atual na varredura do codigo C-Minus
 int currentScope = 0;
-
+// Numero de parametros de uma definicao ou chamada de funcao
 int params = 0;
-
+// Tabelas de literais, variaveis e funcoes
 LitTable* litTable;
 VarTable* varTable;
 FuncTable* funcTable;
@@ -46,6 +59,7 @@ FuncTable* funcTable;
 %left TIMES OVER
 %right ASSIGN
 
+// Possiveis tipos para o yylval
 %union
 {
     int integer;

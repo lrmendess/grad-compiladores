@@ -66,12 +66,14 @@ comment			\/\/.*
 }
 
 {id} {
+	/* Eh feito uma copia do yytext para o yylval para evitar vazamento de memoria */
 	memset(yylval.string, 0, 128);
 	strcpy(yylval.string, yytext);
 	return ID;
 }
 
 {string} {
+	/* Adicao de um literal na tabela de literais */
 	add_literal(litTable, yytext);
 	return STRING;
 }
