@@ -40,14 +40,19 @@ void addFunc(char* funcName);
  */
 void validFunc(char* funcName);
 
-// Escopo atual na varredura do codigo C-Minus
-int currentScope = 0;
-// Numero de parametros de uma definicao ou chamada de funcao
-int params = 0;
+
 // Tabelas de literais, variaveis e funcoes
 LitTable* litTable;
 VarTable* varTable;
 FuncTable* funcTable;
+
+// Escopo atual na varredura do codigo C-Minus, qtd. de parametros de funcao e tamanho das variaveis
+int currentScope = 0, params = 0, varSize = 0;
+
+// Auxiliares que carregam os valores de yytext
+char funcName[128] = { '\0' };
+char varName[128] = { '\0' };
+char varNameBkp[128] = { '\0' };
 %}
 
 %token ELSE IF INPUT INT OUTPUT RETURN VOID WHILE WRITE SEMI COMMA
@@ -58,17 +63,6 @@ FuncTable* funcTable;
 %left PLUS MINUS
 %left TIMES OVER
 %right ASSIGN
-
-// Possiveis tipos para o yylval
-%union
-{
-    int integer;
-    char string[128];
-}
-
-%type<integer> NUM
-%type<string> ID
-
 %start program
 
 %%
@@ -83,7 +77,7 @@ funcDecl:
 	funcHeader funcBody;
 
 funcHeader:
-	retType ID LPAREN params RPAREN { addFunc($2); params = 0; };
+	retType ID { strcpy(funcName, varName); } LPAREN params RPAREN { addFunc(funcName); params = 0; };
 
 funcBody:
 	LBRACE optVarDecl optStmtList RBRACE { currentScope++; };
@@ -109,16 +103,16 @@ paramList:
 |	param;
 
 param:
-	INT ID { addVar($2, 0); params++; }
-|	INT ID LBRACK RBRACK { addVar($2, -1); params++; };
+	INT ID 					{ addVar(varName, 0); params++; }
+|	INT ID LBRACK RBRACK 	{ addVar(varName, -1); params++; };
 
 varDeclList:
 	varDeclList varDecl
 |	varDecl;
 
 varDecl:
-	INT ID SEMI { addVar($2, 0); }
-|	INT ID LBRACK NUM RBRACK SEMI { addVar($2, $4); };
+	INT ID SEMI 												{ addVar(varName, 0); }
+|	INT ID LBRACK NUM { varSize = atoi(yytext); } RBRACK SEMI 	{ addVar(varName, varSize); };
 
 stmtList:
 	stmtList stmt
@@ -135,9 +129,12 @@ assignStmt:
 	lval ASSIGN arithExpr SEMI;
 
 lval:
-	ID { validVar($1); }
-|	ID LBRACK NUM RBRACK { validVar($1); }
-|	ID LBRACK ID RBRACK { validVar($1); validVar($3); };
+	lvalId 						{ validVar(varName); }
+|	lvalId LBRACK NUM RBRACK 	{ validVar(varName); }
+|	lvalId LBRACK ID RBRACK 	{ validVar(varNameBkp); validVar(varName); };
+
+lvalId:
+	ID { strcpy(varNameBkp, varName); };
 
 ifStmt:
 	IF LPAREN boolExpr RPAREN block
@@ -168,7 +165,7 @@ writeCall:
 	WRITE LPAREN STRING RPAREN;
 
 userFuncCall:
-	ID LPAREN optArgList RPAREN { validFunc($1); params = 0; };
+	ID { strcpy(funcName, varName); } LPAREN optArgList RPAREN { validFunc(funcName); params = 0; };
 
 optArgList:
 	%empty
@@ -176,7 +173,7 @@ optArgList:
 
 argList:
 	argList COMMA arithExpr { params++; }
-|	arithExpr { params++; };
+|	arithExpr 				{ params++; };
 
 boolExpr:
 	arithExpr LT arithExpr

@@ -12,9 +12,7 @@
 #include "tables.h"
 
 extern LitTable* litTable;
-extern VarTable* varTable;
-extern FuncTable* funcTable;
-extern int currentScope;
+extern char varName[128];
 %}
 
 space			[ \r\n\t]
@@ -61,14 +59,13 @@ comment			\/\/.*
 "}"         	{ 	return RBRACE; 	}
 
 {number} {
-	yylval.integer = atoi(yytext);
 	return NUM;
 }
 
 {id} {
 	/* Eh feito uma copia do yytext para o yylval para evitar vazamento de memoria */
-	memset(yylval.string, 0, 128);
-	strcpy(yylval.string, yytext);
+	memset(varName, 0, 128);
+	strcpy(varName, yytext);
 	return ID;
 }
 
