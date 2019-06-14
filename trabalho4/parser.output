@@ -1,0 +1,1573 @@
+Grammar
+
+    0 $accept: program $end
+
+    1 program: func_decl_list
+
+    2 func_decl_list: func_decl_list func_decl
+    3               | func_decl
+
+    4 func_decl: func_header func_body
+
+    5 $@1: %empty
+
+    6 func_header: ret_type ID $@1 LPAREN params RPAREN
+
+    7 func_body: LBRACE opt_var_decl opt_stmt_list RBRACE
+
+    8 opt_var_decl: %empty
+    9             | var_decl_list
+
+   10 opt_stmt_list: %empty
+   11              | stmt_list
+
+   12 ret_type: INT
+   13         | VOID
+
+   14 params: VOID
+   15       | param_list
+
+   16 param_list: param_list COMMA param
+   17           | param
+
+   18 param: INT ID
+   19      | INT ID LBRACK RBRACK
+
+   20 var_decl_list: var_decl_list var_decl
+   21              | var_decl
+
+   22 var_decl: INT ID SEMI
+
+   23 $@2: %empty
+
+   24 var_decl: INT ID LBRACK NUM $@2 RBRACK SEMI
+
+   25 stmt_list: stmt_list stmt
+   26          | stmt
+
+   27 stmt: assign_stmt
+   28     | if_stmt
+   29     | while_stmt
+   30     | return_stmt
+   31     | func_call SEMI
+
+   32 assign_stmt: lval ASSIGN arith_expr SEMI
+
+   33 lval: lval_id
+   34     | lval_id LBRACK NUM RBRACK
+   35     | lval_id LBRACK ID RBRACK
+
+   36 lval_id: ID
+
+   37 if_stmt: IF LPAREN bool_expr RPAREN block
+   38        | IF LPAREN bool_expr RPAREN block ELSE block
+
+   39 block: LBRACE opt_stmt_list RBRACE
+
+   40 while_stmt: WHILE LPAREN bool_expr RPAREN block
+
+   41 return_stmt: RETURN SEMI
+   42            | RETURN arith_expr SEMI
+
+   43 func_call: output_call
+   44          | write_call
+   45          | user_func_call
+
+   46 input_call: INPUT LPAREN RPAREN
+
+   47 output_call: OUTPUT LPAREN arith_expr RPAREN
+
+   48 write_call: WRITE LPAREN STRING RPAREN
+
+   49 $@3: %empty
+
+   50 user_func_call: ID $@3 LPAREN opt_arg_list RPAREN
+
+   51 opt_arg_list: %empty
+   52             | arg_list
+
+   53 arg_list: arg_list COMMA arith_expr
+   54         | arith_expr
+
+   55 bool_expr: arith_expr LT arith_expr
+   56          | arith_expr LE arith_expr
+   57          | arith_expr GT arith_expr
+   58          | arith_expr GE arith_expr
+   59          | arith_expr EQ arith_expr
+   60          | arith_expr NEQ arith_expr
+
+   61 arith_expr: arith_expr PLUS arith_expr
+   62           | arith_expr MINUS arith_expr
+   63           | arith_expr TIMES arith_expr
+   64           | arith_expr OVER arith_expr
+   65           | LPAREN arith_expr RPAREN
+   66           | lval
+   67           | input_call
+   68           | user_func_call
+   69           | NUM
+
+
+Terminals, with rules where they appear
+
+$end (0) 0
+error (256)
+ELSE (258) 38
+IF (259) 37 38
+INPUT (260) 46
+INT (261) 12 18 19 22 24
+OUTPUT (262) 47
+RETURN (263) 41 42
+VOID (264) 13 14
+WHILE (265) 40
+WRITE (266) 48
+SEMI (267) 22 24 31 32 41 42
+COMMA (268) 16 53
+LBRACK (269) 19 24 34 35
+RBRACK (270) 19 24 34 35
+LBRACE (271) 7 39
+RBRACE (272) 7 39
+LPAREN (273) 6 37 38 40 46 47 48 50 65
+RPAREN (274) 6 37 38 40 46 47 48 50 65
+NUM (275) 24 34 69
+ID (276) 6 18 19 22 24 35 36 50
+STRING (277) 48
+LT (278) 55
+LE (279) 56
+GT (280) 57
+GE (281) 58
+EQ (282) 59
+NEQ (283) 60
+PLUS (284) 61
+MINUS (285) 62
+TIMES (286) 63
+OVER (287) 64
+ASSIGN (288) 32
+
+
+Nonterminals, with rules where they appear
+
+$accept (34)
+    on left: 0
+program (35)
+    on left: 1, on right: 0
+func_decl_list (36)
+    on left: 2 3, on right: 1 2
+func_decl (37)
+    on left: 4, on right: 2 3
+func_header (38)
+    on left: 6, on right: 4
+$@1 (39)
+    on left: 5, on right: 6
+func_body (40)
+    on left: 7, on right: 4
+opt_var_decl (41)
+    on left: 8 9, on right: 7
+opt_stmt_list (42)
+    on left: 10 11, on right: 7 39
+ret_type (43)
+    on left: 12 13, on right: 6
+params (44)
+    on left: 14 15, on right: 6
+param_list (45)
+    on left: 16 17, on right: 15 16
+param (46)
+    on left: 18 19, on right: 16 17
+var_decl_list (47)
+    on left: 20 21, on right: 9 20
+var_decl (48)
+    on left: 22 24, on right: 20 21
+$@2 (49)
+    on left: 23, on right: 24
+stmt_list (50)
+    on left: 25 26, on right: 11 25
+stmt (51)
+    on left: 27 28 29 30 31, on right: 25 26
+assign_stmt (52)
+    on left: 32, on right: 27
+lval (53)
+    on left: 33 34 35, on right: 32 66
+lval_id (54)
+    on left: 36, on right: 33 34 35
+if_stmt (55)
+    on left: 37 38, on right: 28
+block (56)
+    on left: 39, on right: 37 38 40
+while_stmt (57)
+    on left: 40, on right: 29
+return_stmt (58)
+    on left: 41 42, on right: 30
+func_call (59)
+    on left: 43 44 45, on right: 31
+input_call (60)
+    on left: 46, on right: 67
+output_call (61)
+    on left: 47, on right: 43
+write_call (62)
+    on left: 48, on right: 44
+user_func_call (63)
+    on left: 50, on right: 45 68
+$@3 (64)
+    on left: 49, on right: 50
+opt_arg_list (65)
+    on left: 51 52, on right: 50
+arg_list (66)
+    on left: 53 54, on right: 52 53
+bool_expr (67)
+    on left: 55 56 57 58 59 60, on right: 37 38 40
+arith_expr (68)
+    on left: 61 62 63 64 65 66 67 68 69, on right: 32 42 47 53 54 55
+    56 57 58 59 60 61 62 63 64 65
+
+
+State 0
+
+    0 $accept: . program $end
+
+    INT   shift, and go to state 1
+    VOID  shift, and go to state 2
+
+    program         go to state 3
+    func_decl_list  go to state 4
+    func_decl       go to state 5
+    func_header     go to state 6
+    ret_type        go to state 7
+
+
+State 1
+
+   12 ret_type: INT .
+
+    $default  reduce using rule 12 (ret_type)
+
+
+State 2
+
+   13 ret_type: VOID .
+
+    $default  reduce using rule 13 (ret_type)
+
+
+State 3
+
+    0 $accept: program . $end
+
+    $end  shift, and go to state 8
+
+
+State 4
+
+    1 program: func_decl_list .
+    2 func_decl_list: func_decl_list . func_decl
+
+    INT   shift, and go to state 1
+    VOID  shift, and go to state 2
+
+    $default  reduce using rule 1 (program)
+
+    func_decl    go to state 9
+    func_header  go to state 6
+    ret_type     go to state 7
+
+
+State 5
+
+    3 func_decl_list: func_decl .
+
+    $default  reduce using rule 3 (func_decl_list)
+
+
+State 6
+
+    4 func_decl: func_header . func_body
+
+    LBRACE  shift, and go to state 10
+
+    func_body  go to state 11
+
+
+State 7
+
+    6 func_header: ret_type . ID $@1 LPAREN params RPAREN
+
+    ID  shift, and go to state 12
+
+
+State 8
+
+    0 $accept: program $end .
+
+    $default  accept
+
+
+State 9
+
+    2 func_decl_list: func_decl_list func_decl .
+
+    $default  reduce using rule 2 (func_decl_list)
+
+
+State 10
+
+    7 func_body: LBRACE . opt_var_decl opt_stmt_list RBRACE
+
+    INT  shift, and go to state 13
+
+    $default  reduce using rule 8 (opt_var_decl)
+
+    opt_var_decl   go to state 14
+    var_decl_list  go to state 15
+    var_decl       go to state 16
+
+
+State 11
+
+    4 func_decl: func_header func_body .
+
+    $default  reduce using rule 4 (func_decl)
+
+
+State 12
+
+    6 func_header: ret_type ID . $@1 LPAREN params RPAREN
+
+    $default  reduce using rule 5 ($@1)
+
+    $@1  go to state 17
+
+
+State 13
+
+   22 var_decl: INT . ID SEMI
+   24         | INT . ID LBRACK NUM $@2 RBRACK SEMI
+
+    ID  shift, and go to state 18
+
+
+State 14
+
+    7 func_body: LBRACE opt_var_decl . opt_stmt_list RBRACE
+
+    IF      shift, and go to state 19
+    OUTPUT  shift, and go to state 20
+    RETURN  shift, and go to state 21
+    WHILE   shift, and go to state 22
+    WRITE   shift, and go to state 23
+    ID      shift, and go to state 24
+
+    $default  reduce using rule 10 (opt_stmt_list)
+
+    opt_stmt_list   go to state 25
+    stmt_list       go to state 26
+    stmt            go to state 27
+    assign_stmt     go to state 28
+    lval            go to state 29
+    lval_id         go to state 30
+    if_stmt         go to state 31
+    while_stmt      go to state 32
+    return_stmt     go to state 33
+    func_call       go to state 34
+    output_call     go to state 35
+    write_call      go to state 36
+    user_func_call  go to state 37
+
+
+State 15
+
+    9 opt_var_decl: var_decl_list .
+   20 var_decl_list: var_decl_list . var_decl
+
+    INT  shift, and go to state 13
+
+    $default  reduce using rule 9 (opt_var_decl)
+
+    var_decl  go to state 38
+
+
+State 16
+
+   21 var_decl_list: var_decl .
+
+    $default  reduce using rule 21 (var_decl_list)
+
+
+State 17
+
+    6 func_header: ret_type ID $@1 . LPAREN params RPAREN
+
+    LPAREN  shift, and go to state 39
+
+
+State 18
+
+   22 var_decl: INT ID . SEMI
+   24         | INT ID . LBRACK NUM $@2 RBRACK SEMI
+
+    SEMI    shift, and go to state 40
+    LBRACK  shift, and go to state 41
+
+
+State 19
+
+   37 if_stmt: IF . LPAREN bool_expr RPAREN block
+   38        | IF . LPAREN bool_expr RPAREN block ELSE block
+
+    LPAREN  shift, and go to state 42
+
+
+State 20
+
+   47 output_call: OUTPUT . LPAREN arith_expr RPAREN
+
+    LPAREN  shift, and go to state 43
+
+
+State 21
+
+   41 return_stmt: RETURN . SEMI
+   42            | RETURN . arith_expr SEMI
+
+    INPUT   shift, and go to state 44
+    SEMI    shift, and go to state 45
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 51
+
+
+State 22
+
+   40 while_stmt: WHILE . LPAREN bool_expr RPAREN block
+
+    LPAREN  shift, and go to state 52
+
+
+State 23
+
+   48 write_call: WRITE . LPAREN STRING RPAREN
+
+    LPAREN  shift, and go to state 53
+
+
+State 24
+
+   36 lval_id: ID .
+   50 user_func_call: ID . $@3 LPAREN opt_arg_list RPAREN
+
+    LPAREN    reduce using rule 49 ($@3)
+    $default  reduce using rule 36 (lval_id)
+
+    $@3  go to state 54
+
+
+State 25
+
+    7 func_body: LBRACE opt_var_decl opt_stmt_list . RBRACE
+
+    RBRACE  shift, and go to state 55
+
+
+State 26
+
+   11 opt_stmt_list: stmt_list .
+   25 stmt_list: stmt_list . stmt
+
+    IF      shift, and go to state 19
+    OUTPUT  shift, and go to state 20
+    RETURN  shift, and go to state 21
+    WHILE   shift, and go to state 22
+    WRITE   shift, and go to state 23
+    ID      shift, and go to state 24
+
+    $default  reduce using rule 11 (opt_stmt_list)
+
+    stmt            go to state 56
+    assign_stmt     go to state 28
+    lval            go to state 29
+    lval_id         go to state 30
+    if_stmt         go to state 31
+    while_stmt      go to state 32
+    return_stmt     go to state 33
+    func_call       go to state 34
+    output_call     go to state 35
+    write_call      go to state 36
+    user_func_call  go to state 37
+
+
+State 27
+
+   26 stmt_list: stmt .
+
+    $default  reduce using rule 26 (stmt_list)
+
+
+State 28
+
+   27 stmt: assign_stmt .
+
+    $default  reduce using rule 27 (stmt)
+
+
+State 29
+
+   32 assign_stmt: lval . ASSIGN arith_expr SEMI
+
+    ASSIGN  shift, and go to state 57
+
+
+State 30
+
+   33 lval: lval_id .
+   34     | lval_id . LBRACK NUM RBRACK
+   35     | lval_id . LBRACK ID RBRACK
+
+    LBRACK  shift, and go to state 58
+
+    $default  reduce using rule 33 (lval)
+
+
+State 31
+
+   28 stmt: if_stmt .
+
+    $default  reduce using rule 28 (stmt)
+
+
+State 32
+
+   29 stmt: while_stmt .
+
+    $default  reduce using rule 29 (stmt)
+
+
+State 33
+
+   30 stmt: return_stmt .
+
+    $default  reduce using rule 30 (stmt)
+
+
+State 34
+
+   31 stmt: func_call . SEMI
+
+    SEMI  shift, and go to state 59
+
+
+State 35
+
+   43 func_call: output_call .
+
+    $default  reduce using rule 43 (func_call)
+
+
+State 36
+
+   44 func_call: write_call .
+
+    $default  reduce using rule 44 (func_call)
+
+
+State 37
+
+   45 func_call: user_func_call .
+
+    $default  reduce using rule 45 (func_call)
+
+
+State 38
+
+   20 var_decl_list: var_decl_list var_decl .
+
+    $default  reduce using rule 20 (var_decl_list)
+
+
+State 39
+
+    6 func_header: ret_type ID $@1 LPAREN . params RPAREN
+
+    INT   shift, and go to state 60
+    VOID  shift, and go to state 61
+
+    params      go to state 62
+    param_list  go to state 63
+    param       go to state 64
+
+
+State 40
+
+   22 var_decl: INT ID SEMI .
+
+    $default  reduce using rule 22 (var_decl)
+
+
+State 41
+
+   24 var_decl: INT ID LBRACK . NUM $@2 RBRACK SEMI
+
+    NUM  shift, and go to state 65
+
+
+State 42
+
+   37 if_stmt: IF LPAREN . bool_expr RPAREN block
+   38        | IF LPAREN . bool_expr RPAREN block ELSE block
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    bool_expr       go to state 66
+    arith_expr      go to state 67
+
+
+State 43
+
+   47 output_call: OUTPUT LPAREN . arith_expr RPAREN
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 68
+
+
+State 44
+
+   46 input_call: INPUT . LPAREN RPAREN
+
+    LPAREN  shift, and go to state 69
+
+
+State 45
+
+   41 return_stmt: RETURN SEMI .
+
+    $default  reduce using rule 41 (return_stmt)
+
+
+State 46
+
+   65 arith_expr: LPAREN . arith_expr RPAREN
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 70
+
+
+State 47
+
+   69 arith_expr: NUM .
+
+    $default  reduce using rule 69 (arith_expr)
+
+
+State 48
+
+   66 arith_expr: lval .
+
+    $default  reduce using rule 66 (arith_expr)
+
+
+State 49
+
+   67 arith_expr: input_call .
+
+    $default  reduce using rule 67 (arith_expr)
+
+
+State 50
+
+   68 arith_expr: user_func_call .
+
+    $default  reduce using rule 68 (arith_expr)
+
+
+State 51
+
+   42 return_stmt: RETURN arith_expr . SEMI
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    SEMI   shift, and go to state 71
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+
+State 52
+
+   40 while_stmt: WHILE LPAREN . bool_expr RPAREN block
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    bool_expr       go to state 76
+    arith_expr      go to state 67
+
+
+State 53
+
+   48 write_call: WRITE LPAREN . STRING RPAREN
+
+    STRING  shift, and go to state 77
+
+
+State 54
+
+   50 user_func_call: ID $@3 . LPAREN opt_arg_list RPAREN
+
+    LPAREN  shift, and go to state 78
+
+
+State 55
+
+    7 func_body: LBRACE opt_var_decl opt_stmt_list RBRACE .
+
+    $default  reduce using rule 7 (func_body)
+
+
+State 56
+
+   25 stmt_list: stmt_list stmt .
+
+    $default  reduce using rule 25 (stmt_list)
+
+
+State 57
+
+   32 assign_stmt: lval ASSIGN . arith_expr SEMI
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 79
+
+
+State 58
+
+   34 lval: lval_id LBRACK . NUM RBRACK
+   35     | lval_id LBRACK . ID RBRACK
+
+    NUM  shift, and go to state 80
+    ID   shift, and go to state 81
+
+
+State 59
+
+   31 stmt: func_call SEMI .
+
+    $default  reduce using rule 31 (stmt)
+
+
+State 60
+
+   18 param: INT . ID
+   19      | INT . ID LBRACK RBRACK
+
+    ID  shift, and go to state 82
+
+
+State 61
+
+   14 params: VOID .
+
+    $default  reduce using rule 14 (params)
+
+
+State 62
+
+    6 func_header: ret_type ID $@1 LPAREN params . RPAREN
+
+    RPAREN  shift, and go to state 83
+
+
+State 63
+
+   15 params: param_list .
+   16 param_list: param_list . COMMA param
+
+    COMMA  shift, and go to state 84
+
+    $default  reduce using rule 15 (params)
+
+
+State 64
+
+   17 param_list: param .
+
+    $default  reduce using rule 17 (param_list)
+
+
+State 65
+
+   24 var_decl: INT ID LBRACK NUM . $@2 RBRACK SEMI
+
+    $default  reduce using rule 23 ($@2)
+
+    $@2  go to state 85
+
+
+State 66
+
+   37 if_stmt: IF LPAREN bool_expr . RPAREN block
+   38        | IF LPAREN bool_expr . RPAREN block ELSE block
+
+    RPAREN  shift, and go to state 86
+
+
+State 67
+
+   55 bool_expr: arith_expr . LT arith_expr
+   56          | arith_expr . LE arith_expr
+   57          | arith_expr . GT arith_expr
+   58          | arith_expr . GE arith_expr
+   59          | arith_expr . EQ arith_expr
+   60          | arith_expr . NEQ arith_expr
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    LT     shift, and go to state 87
+    LE     shift, and go to state 88
+    GT     shift, and go to state 89
+    GE     shift, and go to state 90
+    EQ     shift, and go to state 91
+    NEQ    shift, and go to state 92
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+
+State 68
+
+   47 output_call: OUTPUT LPAREN arith_expr . RPAREN
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    RPAREN  shift, and go to state 93
+    PLUS    shift, and go to state 72
+    MINUS   shift, and go to state 73
+    TIMES   shift, and go to state 74
+    OVER    shift, and go to state 75
+
+
+State 69
+
+   46 input_call: INPUT LPAREN . RPAREN
+
+    RPAREN  shift, and go to state 94
+
+
+State 70
+
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+   65           | LPAREN arith_expr . RPAREN
+
+    RPAREN  shift, and go to state 95
+    PLUS    shift, and go to state 72
+    MINUS   shift, and go to state 73
+    TIMES   shift, and go to state 74
+    OVER    shift, and go to state 75
+
+
+State 71
+
+   42 return_stmt: RETURN arith_expr SEMI .
+
+    $default  reduce using rule 42 (return_stmt)
+
+
+State 72
+
+   61 arith_expr: arith_expr PLUS . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 96
+
+
+State 73
+
+   62 arith_expr: arith_expr MINUS . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 97
+
+
+State 74
+
+   63 arith_expr: arith_expr TIMES . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 98
+
+
+State 75
+
+   64 arith_expr: arith_expr OVER . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 99
+
+
+State 76
+
+   40 while_stmt: WHILE LPAREN bool_expr . RPAREN block
+
+    RPAREN  shift, and go to state 100
+
+
+State 77
+
+   48 write_call: WRITE LPAREN STRING . RPAREN
+
+    RPAREN  shift, and go to state 101
+
+
+State 78
+
+   50 user_func_call: ID $@3 LPAREN . opt_arg_list RPAREN
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    $default  reduce using rule 51 (opt_arg_list)
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    opt_arg_list    go to state 102
+    arg_list        go to state 103
+    arith_expr      go to state 104
+
+
+State 79
+
+   32 assign_stmt: lval ASSIGN arith_expr . SEMI
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    SEMI   shift, and go to state 105
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+
+State 80
+
+   34 lval: lval_id LBRACK NUM . RBRACK
+
+    RBRACK  shift, and go to state 106
+
+
+State 81
+
+   35 lval: lval_id LBRACK ID . RBRACK
+
+    RBRACK  shift, and go to state 107
+
+
+State 82
+
+   18 param: INT ID .
+   19      | INT ID . LBRACK RBRACK
+
+    LBRACK  shift, and go to state 108
+
+    $default  reduce using rule 18 (param)
+
+
+State 83
+
+    6 func_header: ret_type ID $@1 LPAREN params RPAREN .
+
+    $default  reduce using rule 6 (func_header)
+
+
+State 84
+
+   16 param_list: param_list COMMA . param
+
+    INT  shift, and go to state 60
+
+    param  go to state 109
+
+
+State 85
+
+   24 var_decl: INT ID LBRACK NUM $@2 . RBRACK SEMI
+
+    RBRACK  shift, and go to state 110
+
+
+State 86
+
+   37 if_stmt: IF LPAREN bool_expr RPAREN . block
+   38        | IF LPAREN bool_expr RPAREN . block ELSE block
+
+    LBRACE  shift, and go to state 111
+
+    block  go to state 112
+
+
+State 87
+
+   55 bool_expr: arith_expr LT . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 113
+
+
+State 88
+
+   56 bool_expr: arith_expr LE . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 114
+
+
+State 89
+
+   57 bool_expr: arith_expr GT . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 115
+
+
+State 90
+
+   58 bool_expr: arith_expr GE . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 116
+
+
+State 91
+
+   59 bool_expr: arith_expr EQ . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 117
+
+
+State 92
+
+   60 bool_expr: arith_expr NEQ . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 118
+
+
+State 93
+
+   47 output_call: OUTPUT LPAREN arith_expr RPAREN .
+
+    $default  reduce using rule 47 (output_call)
+
+
+State 94
+
+   46 input_call: INPUT LPAREN RPAREN .
+
+    $default  reduce using rule 46 (input_call)
+
+
+State 95
+
+   65 arith_expr: LPAREN arith_expr RPAREN .
+
+    $default  reduce using rule 65 (arith_expr)
+
+
+State 96
+
+   61 arith_expr: arith_expr . PLUS arith_expr
+   61           | arith_expr PLUS arith_expr .
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 61 (arith_expr)
+
+
+State 97
+
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   62           | arith_expr MINUS arith_expr .
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 62 (arith_expr)
+
+
+State 98
+
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   63           | arith_expr TIMES arith_expr .
+   64           | arith_expr . OVER arith_expr
+
+    $default  reduce using rule 63 (arith_expr)
+
+
+State 99
+
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+   64           | arith_expr OVER arith_expr .
+
+    $default  reduce using rule 64 (arith_expr)
+
+
+State 100
+
+   40 while_stmt: WHILE LPAREN bool_expr RPAREN . block
+
+    LBRACE  shift, and go to state 111
+
+    block  go to state 119
+
+
+State 101
+
+   48 write_call: WRITE LPAREN STRING RPAREN .
+
+    $default  reduce using rule 48 (write_call)
+
+
+State 102
+
+   50 user_func_call: ID $@3 LPAREN opt_arg_list . RPAREN
+
+    RPAREN  shift, and go to state 120
+
+
+State 103
+
+   52 opt_arg_list: arg_list .
+   53 arg_list: arg_list . COMMA arith_expr
+
+    COMMA  shift, and go to state 121
+
+    $default  reduce using rule 52 (opt_arg_list)
+
+
+State 104
+
+   54 arg_list: arith_expr .
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 54 (arg_list)
+
+
+State 105
+
+   32 assign_stmt: lval ASSIGN arith_expr SEMI .
+
+    $default  reduce using rule 32 (assign_stmt)
+
+
+State 106
+
+   34 lval: lval_id LBRACK NUM RBRACK .
+
+    $default  reduce using rule 34 (lval)
+
+
+State 107
+
+   35 lval: lval_id LBRACK ID RBRACK .
+
+    $default  reduce using rule 35 (lval)
+
+
+State 108
+
+   19 param: INT ID LBRACK . RBRACK
+
+    RBRACK  shift, and go to state 122
+
+
+State 109
+
+   16 param_list: param_list COMMA param .
+
+    $default  reduce using rule 16 (param_list)
+
+
+State 110
+
+   24 var_decl: INT ID LBRACK NUM $@2 RBRACK . SEMI
+
+    SEMI  shift, and go to state 123
+
+
+State 111
+
+   39 block: LBRACE . opt_stmt_list RBRACE
+
+    IF      shift, and go to state 19
+    OUTPUT  shift, and go to state 20
+    RETURN  shift, and go to state 21
+    WHILE   shift, and go to state 22
+    WRITE   shift, and go to state 23
+    ID      shift, and go to state 24
+
+    $default  reduce using rule 10 (opt_stmt_list)
+
+    opt_stmt_list   go to state 124
+    stmt_list       go to state 26
+    stmt            go to state 27
+    assign_stmt     go to state 28
+    lval            go to state 29
+    lval_id         go to state 30
+    if_stmt         go to state 31
+    while_stmt      go to state 32
+    return_stmt     go to state 33
+    func_call       go to state 34
+    output_call     go to state 35
+    write_call      go to state 36
+    user_func_call  go to state 37
+
+
+State 112
+
+   37 if_stmt: IF LPAREN bool_expr RPAREN block .
+   38        | IF LPAREN bool_expr RPAREN block . ELSE block
+
+    ELSE  shift, and go to state 125
+
+    $default  reduce using rule 37 (if_stmt)
+
+
+State 113
+
+   55 bool_expr: arith_expr LT arith_expr .
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 55 (bool_expr)
+
+
+State 114
+
+   56 bool_expr: arith_expr LE arith_expr .
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 56 (bool_expr)
+
+
+State 115
+
+   57 bool_expr: arith_expr GT arith_expr .
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 57 (bool_expr)
+
+
+State 116
+
+   58 bool_expr: arith_expr GE arith_expr .
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 58 (bool_expr)
+
+
+State 117
+
+   59 bool_expr: arith_expr EQ arith_expr .
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 59 (bool_expr)
+
+
+State 118
+
+   60 bool_expr: arith_expr NEQ arith_expr .
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 60 (bool_expr)
+
+
+State 119
+
+   40 while_stmt: WHILE LPAREN bool_expr RPAREN block .
+
+    $default  reduce using rule 40 (while_stmt)
+
+
+State 120
+
+   50 user_func_call: ID $@3 LPAREN opt_arg_list RPAREN .
+
+    $default  reduce using rule 50 (user_func_call)
+
+
+State 121
+
+   53 arg_list: arg_list COMMA . arith_expr
+
+    INPUT   shift, and go to state 44
+    LPAREN  shift, and go to state 46
+    NUM     shift, and go to state 47
+    ID      shift, and go to state 24
+
+    lval            go to state 48
+    lval_id         go to state 30
+    input_call      go to state 49
+    user_func_call  go to state 50
+    arith_expr      go to state 126
+
+
+State 122
+
+   19 param: INT ID LBRACK RBRACK .
+
+    $default  reduce using rule 19 (param)
+
+
+State 123
+
+   24 var_decl: INT ID LBRACK NUM $@2 RBRACK SEMI .
+
+    $default  reduce using rule 24 (var_decl)
+
+
+State 124
+
+   39 block: LBRACE opt_stmt_list . RBRACE
+
+    RBRACE  shift, and go to state 127
+
+
+State 125
+
+   38 if_stmt: IF LPAREN bool_expr RPAREN block ELSE . block
+
+    LBRACE  shift, and go to state 111
+
+    block  go to state 128
+
+
+State 126
+
+   53 arg_list: arg_list COMMA arith_expr .
+   61 arith_expr: arith_expr . PLUS arith_expr
+   62           | arith_expr . MINUS arith_expr
+   63           | arith_expr . TIMES arith_expr
+   64           | arith_expr . OVER arith_expr
+
+    PLUS   shift, and go to state 72
+    MINUS  shift, and go to state 73
+    TIMES  shift, and go to state 74
+    OVER   shift, and go to state 75
+
+    $default  reduce using rule 53 (arg_list)
+
+
+State 127
+
+   39 block: LBRACE opt_stmt_list RBRACE .
+
+    $default  reduce using rule 39 (block)
+
+
+State 128
+
+   38 if_stmt: IF LPAREN bool_expr RPAREN block ELSE block .
+
+    $default  reduce using rule 38 (if_stmt)

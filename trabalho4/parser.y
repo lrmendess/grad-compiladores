@@ -19,40 +19,42 @@
 
 int yylex(void);
 void yyerror(char const *s);
+void yylex_destroy();
 extern int yylineno;
 extern char* yytext;
 
 /**
  * Adiciona uma variavel na tabela de variaveis com seu tamanho
  */
-int addVar(char* varName, int size);
+int add_variable(char* var_name, int size);
 /**
  * Valida se uma variavel existe de acordo com seu nome e escopo
  */
-int validVar(char* varName);
+int valid_variable(char* var_name);
 /**
  * Adiciona uma funcao na tabela de funcoes com sua aridade
  */
-int addFunc(char* funcName);
+int add_function(char* func_name);
 /**
  * Valida se uma funcao existe de acordo com seu nome e numero de parametros
  */
-int validFunc(char* funcName);
+int valid_function(char* func_name);
+/**
+ * Printa as tabelas de literais, funcoes e variaveis
+ */
+void success_print();
 
-// Tabelas de literais, variaveis e funcoes
-LitTable* litTable;
-VarTable* varTable;
-FuncTable* funcTable;
+// AST e tabelas de literais, variaveis e funcoes
+AST* ast;
+LitTable* lit_table;
+VarTable* var_table;
+FuncTable* func_table;
 
 // Escopo atual na varredura do codigo C-Minus, qtd. de parametros de funcao e tamanho das variaveis
-int currentScope = 0, params = 0, varSize = 0;
+int current_scope = 0, params_count = 0, var_size = 0;
 
 // Auxiliares que carregam os valores de yytext
-char funcName[128] = { '\0' };
-char varName[128] = { '\0' };
-char varNameBkp[128] = { '\0' };
-
-AST* ast;
+char func_name[128], var_name[128], var_name_bkp[128];
 %}
 
 %define api.value.type {AST*} // Type of variable yylval;
@@ -69,201 +71,213 @@ AST* ast;
 
 %%
 program:
-	funcDeclList { ast = $1; };
+	func_decl_list { ast = $1; };
 
-funcDeclList:
-	funcDeclList funcDecl	{ add_child($1, $2); $$ = $1; }
-|	funcDecl				{ $$ = new_subtree(FLIST_NODE, 1, $1); };
+func_decl_list:
+	func_decl_list func_decl	{ add_child($1, $2); $$ = $1; }
+|	func_decl					{ $$ = new_subtree(FLIST_NODE, 1, $1); };
 
-funcDecl:
-	funcHeader funcBody { $$ = new_subtree(FDECL_NODE, 2, $1, $2); };
+func_decl:
+	func_header func_body { $$ = new_subtree(FDECL_NODE, 2, $1, $2); };
 
-funcHeader:
-	retType ID { strcpy(funcName, varName); } LPAREN params RPAREN {
-		int index = addFunc(funcName); params = 0;
+func_header:
+	ret_type ID { strcpy(func_name, var_name); } LPAREN params RPAREN
+	{
+		int index = add_function(func_name);
+		params_count = 0;
 
-		AST* funcNameNode = new_node(FNAME_NODE, index);
-		$$ = new_subtree(FHEADER_NODE, 2, funcNameNode, $5);
+		$$ = new_subtree(FHEADER_NODE, 2, new_node(FNAME_NODE, index), $5);
 	};
 
-funcBody:
-	LBRACE optVarDecl optStmtList RBRACE {
-		currentScope++;
+func_body:
+	LBRACE opt_var_decl opt_stmt_list RBRACE
+	{
+		current_scope++;
 
 		$$ = new_subtree(FBODY_NODE, 2, $2, $3);
 	};
 
-optVarDecl:
-	%empty		{ $$ = new_node(VAR_DECL_LIST_NODE, 0); }
-|	varDeclList { $$ = $1; };
+opt_var_decl:
+	%empty			{ $$ = new_node(VDECL_LIST_NODE, 0); }
+|	var_decl_list 	{ $$ = $1; };
 
-optStmtList:
+opt_stmt_list:
 	%empty		{ $$ = new_node(BLOCK_NODE, 0); }
-|	stmtList 	{ $$ = $1;};
+|	stmt_list 	{ $$ = $1; };
 
-retType:
+ret_type:
 	INT
 |	VOID;
 
 params:
-	VOID		{ $$ = new_node(PARAM_LIST_NODE, 0); }
-|	paramList 	{ $$ = $1; };
+	VOID		{ $$ = new_node(PLIST_NODE, 0); }
+|	param_list 	{ $$ = $1; };
 
-paramList:
-	paramList COMMA param 	{ add_child($1, $3); $$ = $1; }
-|	param 					{ $$ = new_subtree(PARAM_LIST_NODE, 1, $1); };
+param_list:
+	param_list COMMA param 	{ add_child($1, $3); $$ = $1; }
+|	param 					{ $$ = new_subtree(PLIST_NODE, 1, $1); };
 
 param:
-	INT ID {
-		int index = addVar(varName, 0); params++;
-		$$ = new_node(VAR_DECL_NODE, index);
+	INT ID
+	{
+		int index = add_variable(var_name, 0);
+		params_count++;
+
+		$$ = new_node(VDECL_NODE, index);
 	}
 
-|	INT ID LBRACK RBRACK {
-		int index = addVar(varName, -1); params++;
-		$$ = new_node(VAR_DECL_NODE, index);
+|	INT ID LBRACK RBRACK
+	{
+		int index = add_variable(var_name, -1);
+		params_count++;
+
+		$$ = new_node(VDECL_NODE, index);
 	};
 
-varDeclList:
-	varDeclList varDecl { add_child($1, $2); $$ = $1; }
-|	varDecl 			{ $$ = new_subtree(VAR_DECL_LIST_NODE, 1, $1); };
+var_decl_list:
+	var_decl_list var_decl 	{ add_child($1, $2); $$ = $1; }
+|	var_decl 				{ $$ = new_subtree(VDECL_LIST_NODE, 1, $1); };
 
-varDecl:
-	INT ID SEMI {
-		int index = addVar(varName, 0);
-		$$ = new_node(VAR_DECL_NODE, index);
+var_decl:
+	INT ID SEMI
+	{
+		int index = add_variable(var_name, 0);
+
+		$$ = new_node(VDECL_NODE, index);
 	}
 
-|	INT ID LBRACK NUM { varSize = atoi(yytext); } RBRACK SEMI {
-		int index = addVar(varName, varSize);
-		$$ = new_node(VAR_DECL_NODE, index);
+|	INT ID LBRACK NUM { var_size = atoi(yytext); } RBRACK SEMI
+	{
+		int index = add_variable(var_name, var_size);
+		free($4);
+		$$ = new_node(VDECL_NODE, index);
 	};
 
-stmtList:
-	stmtList stmt 	{ add_child($1, $2); $$ = $1; }
+stmt_list:
+	stmt_list stmt 	{ add_child($1, $2); $$ = $1; }
 |	stmt 			{ $$ = new_subtree(BLOCK_NODE, 1, $1); };
 
 stmt:
-	assignStmt 		{ $$ = $1; }
-|	ifStmt 			{ $$ = $1; }
-|	whileStmt 		{ $$ = $1; }
-|	returnStmt 		{ $$ = $1; }
-|	funcCall SEMI 	{ $$ = $1; };
+	assign_stmt 	{ $$ = $1; }
+|	if_stmt 		{ $$ = $1; }
+|	while_stmt 		{ $$ = $1; }
+|	return_stmt 	{ $$ = $1; }
+|	func_call SEMI 	{ $$ = $1; };
 
-assignStmt:
-	lval ASSIGN arithExpr SEMI { $$ = new_subtree(ASSIGN_NODE, 2, $1, $3); };
+assign_stmt:
+	lval ASSIGN arith_expr SEMI { $$ = new_subtree(ASSIGN_NODE, 2, $1, $3); };
 
 lval:
-	lvalId {
-		int index = validVar(varName);
-		$$ = new_node(VAR_USE_NODE, index);
+	lval_id
+	{
+		int index = valid_variable(var_name);
+
+		$$ = new_node(VUSE_NODE, index);
 	}
 
-|	lvalId LBRACK NUM RBRACK {
-		int index = validVar(varName);
-		$$ = new_node(VAR_USE_NODE, index);
+|	lval_id LBRACK NUM RBRACK
+	{
+		int index = valid_variable(var_name);
+		free($3);
+		$$ = new_node(VUSE_NODE, index);
 	}
 
-|	lvalId LBRACK ID RBRACK {
-		int index = validVar(varNameBkp), index2 = validVar(varName);
-		AST* array = new_node(VAR_USE_NODE, index);
-		add_child(array, new_node(VAR_USE_NODE, index2));
-		$$ = array;
+|	lval_id LBRACK ID RBRACK
+	{
+		int index = valid_variable(var_name_bkp);
+		int index2 = valid_variable(var_name);
+		
+		$$ = new_node(VUSE_NODE, index);
+		add_child($$, new_node(VUSE_NODE, index2));
 	};
 
-lvalId:
-	ID { strcpy(varNameBkp, varName); };
+lval_id:
+	ID { strcpy(var_name_bkp, var_name); };
 
-ifStmt:
-	IF LPAREN boolExpr RPAREN block 			{ $$ = new_subtree(IF_NODE, 2, $3, $5); }
-|	IF LPAREN boolExpr RPAREN block ELSE block 	{ $$ = new_subtree(IF_NODE, 3, $3, $5, $7); };
+if_stmt:
+	IF LPAREN bool_expr RPAREN block 			{ $$ = new_subtree(IF_NODE, 2, $3, $5); }
+|	IF LPAREN bool_expr RPAREN block ELSE block { $$ = new_subtree(IF_NODE, 3, $3, $5, $7); };
 
 block:
-	LBRACE optStmtList RBRACE { $$ = $2; };
+	LBRACE opt_stmt_list RBRACE { $$ = $2; };
 
-whileStmt:
-	WHILE LPAREN boolExpr RPAREN block { $$ = new_subtree(WHILE_NODE, 2, $3, $5); };
+while_stmt:
+	WHILE LPAREN bool_expr RPAREN block { $$ = new_subtree(WHILE_NODE, 2, $3, $5); };
 
-returnStmt:
+return_stmt:
 	RETURN SEMI 			{ $$ = new_subtree(RETURN_NODE, 0); }
-|	RETURN arithExpr SEMI 	{ $$ = new_subtree(RETURN_NODE, 1, $2); };
+|	RETURN arith_expr SEMI 	{ $$ = new_subtree(RETURN_NODE, 1, $2); };
 
-funcCall:
-	outputCall 		{ $$ = $1; }
-|	writeCall 		{ $$ = $1; }
-|	userFuncCall	{ $$ = $1; };
+func_call:
+	output_call 	{ $$ = $1; }
+|	write_call 		{ $$ = $1; }
+|	user_func_call	{ $$ = $1; };
 
-inputCall:
+input_call:
 	INPUT LPAREN RPAREN { $$ = new_subtree(INPUT_NODE, 0); };
 
-outputCall:
-	OUTPUT LPAREN arithExpr RPAREN { $$ = new_subtree(OUTPUT_NODE, 1, $3); };
+output_call:
+	OUTPUT LPAREN arith_expr RPAREN { $$ = new_subtree(OUTPUT_NODE, 1, $3); };
 
-writeCall:
+write_call:
 	WRITE LPAREN STRING RPAREN { $$ = new_subtree(WRITE_NODE, 1, $3); };
 
-userFuncCall:
-	ID { strcpy(funcName, varName); } LPAREN optArgList RPAREN {
-		int index = validFunc(funcName); params = 0;
-		AST* funcCallNode = new_node(FCALL_NODE, index);
-		add_child(funcCallNode, $4);
-		$$ = funcCallNode;
+user_func_call:
+	ID { strcpy(func_name, var_name); } LPAREN opt_arg_list RPAREN
+	{
+		int index = valid_function(func_name);
+		params_count = 0;
+
+		$$ = new_node(FCALL_NODE, index);
+		add_child($$, $4);
 	};
 
-optArgList:
-	%empty	{ $$ = new_subtree(ARG_LIST_NODE, 0); }
-|	argList { $$ = $1; };
+opt_arg_list:
+	%empty		{ $$ = new_subtree(ALIST_NODE, 0); }
+|	arg_list	{ $$ = $1; };
 
-argList:
-	argList COMMA arithExpr { params++; add_child($1, $3); $$ = $1; }
-|	arithExpr 				{ params++; $$ = new_subtree(ARG_LIST_NODE, 1, $1); };
+arg_list:
+	arg_list COMMA arith_expr 	{ params_count++; add_child($1, $3); $$ = $1; }
+|	arith_expr 					{ params_count++; $$ = new_subtree(ALIST_NODE, 1, $1); };
 
-boolExpr:
-	arithExpr LT arithExpr 	{ $$ = new_subtree(LT_NODE, 2, $1, $3); }
-|	arithExpr LE arithExpr 	{ $$ = new_subtree(LE_NODE, 2, $1, $3); }
-|	arithExpr GT arithExpr 	{ $$ = new_subtree(GT_NODE, 2, $1, $3); }
-|	arithExpr GE arithExpr 	{ $$ = new_subtree(GE_NODE, 2, $1, $3); }
-|	arithExpr EQ arithExpr 	{ $$ = new_subtree(EQ_NODE, 2, $1, $3); }
-|	arithExpr NEQ arithExpr { $$ = new_subtree(NEQ_NODE, 2, $1, $3); };
+bool_expr:
+	arith_expr LT arith_expr 	{ $$ = new_subtree(LT_NODE, 2, $1, $3); }
+|	arith_expr LE arith_expr 	{ $$ = new_subtree(LE_NODE, 2, $1, $3); }
+|	arith_expr GT arith_expr 	{ $$ = new_subtree(GT_NODE, 2, $1, $3); }
+|	arith_expr GE arith_expr 	{ $$ = new_subtree(GE_NODE, 2, $1, $3); }
+|	arith_expr EQ arith_expr 	{ $$ = new_subtree(EQ_NODE, 2, $1, $3); }
+|	arith_expr NEQ arith_expr 	{ $$ = new_subtree(NEQ_NODE, 2, $1, $3); };
 
-arithExpr:
-	arithExpr PLUS arithExpr 	{ $$ = new_subtree(PLUS_NODE, 2, $1, $3); }
-|	arithExpr MINUS arithExpr 	{ $$ = new_subtree(MINUS_NODE, 2, $1, $3); }
-|	arithExpr TIMES arithExpr 	{ $$ = new_subtree(TIMES_NODE, 2, $1, $3); }
-|	arithExpr OVER arithExpr 	{ $$ = new_subtree(OVER_NODE, 2, $1, $3); }
-|	LPAREN arithExpr RPAREN 	{ $$ = $2; }
+arith_expr:
+	arith_expr PLUS arith_expr 	{ $$ = new_subtree(PLUS_NODE, 2, $1, $3); }
+|	arith_expr MINUS arith_expr { $$ = new_subtree(MINUS_NODE, 2, $1, $3); }
+|	arith_expr TIMES arith_expr { $$ = new_subtree(TIMES_NODE, 2, $1, $3); }
+|	arith_expr OVER arith_expr 	{ $$ = new_subtree(OVER_NODE, 2, $1, $3); }
+|	LPAREN arith_expr RPAREN 	{ $$ = $2; }
 |	lval 						{ $$ = $1; }
-|	inputCall 					{ $$ = $1; }
-|	userFuncCall 				{ $$ = $1; }
+|	input_call 					{ $$ = $1; }
+|	user_func_call 				{ $$ = $1; }
 |	NUM 						{ $$ = $1; };
 
 %%
 
 int main() {
-	litTable = create_lit_table();
-	varTable = create_var_table();
-	funcTable = create_func_table();
+	lit_table = create_lit_table();
+	var_table = create_var_table();
+	func_table = create_func_table();
 
 	if (yyparse() == 0) {
-        print_dot(ast);
+		print_dot(ast);
 		free_tree(ast);
     }
 
-	//puts("PARSE SUCCESSFUL!");
+	yylex_destroy();
 
-	//printf("\n");
-	//print_lit_table(litTable);
-	free_lit_table(litTable);
+	// success_print();
 
-	//printf("\n\n");
-	//print_var_table(varTable);
-	free_var_table(varTable);
-
-	//printf("\n\n");
-	//print_func_table(funcTable);
-	free_func_table(funcTable);
-
-	//print_tree(ast);
+	free_lit_table(lit_table);
+	free_var_table(var_table);
+	free_func_table(func_table);
 
 	return 0;
 }
@@ -273,58 +287,71 @@ void yyerror (char const *s) {
 	exit(EXIT_FAILURE);
 }
 
-int addVar(char* varName, int size) {
-	int index = lookup_var(varTable, varName, currentScope);
+int add_variable(char* var_name, int size) {
+	int index = lookup_var(var_table, var_name, current_scope);
 
 	if (index == -1) {
-		return add_var(varTable, varName, yylineno, currentScope, size);
+		return add_var(var_table, var_name, yylineno, current_scope, size);
 	} else {
 		printf("SEMANTIC ERROR (%d): variable '%s' already declared at line %d.\n",
-			yylineno, varName, get_var_line(varTable, index));
+			yylineno, var_name, get_var_line(var_table, index));
 		exit(EXIT_FAILURE);
 	}
 }
 
-int validVar(char* varName) {
-	int index = lookup_var(varTable, varName, currentScope);
+int valid_variable(char* var_name) {
+	int index = lookup_var(var_table, var_name, current_scope);
 
 	if (index == -1) {
 		printf("SEMANTIC ERROR (%d): variable '%s' was not declared.\n",
-			yylineno, varName);
+			yylineno, var_name);
 		exit(EXIT_FAILURE);
 	}
 
 	return index;
 }
 
-int addFunc(char* funcName) {
-	int index = lookup_func(funcTable, funcName);
+int add_function(char* func_name) {
+	int index = lookup_func(func_table, func_name);
 	
 	if (index == -1) {
-		return add_func(funcTable, funcName, yylineno, params);
+		return add_func(func_table, func_name, yylineno, params_count);
 	} else {
 		printf("SEMANTIC ERROR (%d): function '%s' already declared at line %d.\n",
-			yylineno, funcName, get_var_line(varTable, index));
+			yylineno, func_name, get_var_line(var_table, index));
 		exit(EXIT_FAILURE);
 	}
 }
 
-int validFunc(char* funcName) {
-	int index = lookup_func(funcTable, funcName);
+int valid_function(char* func_name) {
+	int index = lookup_func(func_table, func_name);
 
 	if (index == -1) {
 		printf("SEMANTIC ERROR (%d): function '%s' was not declared.\n",
-			yylineno, funcName);
+			yylineno, func_name);
 		exit(EXIT_FAILURE);
 	} else {
-		int arity = get_func_arity(funcTable, index);
+		int arity = get_func_arity(func_table, index);
 
-		if (arity != params) {
+		if (arity != params_count) {
 			printf("SEMANTIC ERROR (%d): function '%s' was called with %d arguments"
-			" but declared with %d parameters.\n", yylineno, funcName, params, arity);
+			" but declared with %d parameters.\n", yylineno, func_name, params_count, arity);
 			exit(EXIT_FAILURE);
 		}
 	}
 	
 	return index;
+}
+
+void success_print() {
+	puts("PARSE SUCCESSFUL!");
+
+	printf("\n");
+	print_lit_table(lit_table);
+
+	printf("\n\n");
+	print_var_table(var_table);
+	
+	printf("\n\n");
+	print_func_table(func_table);
 }

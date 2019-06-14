@@ -3,18 +3,12 @@
 
 typedef enum {
     IF_NODE,
-    ASSIGN_NODE,
-    READ_NODE,
-    WRITE_NODE,
-    OUTPUT_NODE,
     INPUT_NODE,
+    OUTPUT_NODE,
     RETURN_NODE,
     WHILE_NODE,
-    BLOCK_NODE,
-    VAR_USE_NODE,
-    VAR_DECL_NODE,
-    VAR_DECL_LIST_NODE,
-    PARAM_LIST_NODE,
+    WRITE_NODE,
+
     PLUS_NODE,
     MINUS_NODE,
     TIMES_NODE,
@@ -25,15 +19,23 @@ typedef enum {
     GE_NODE,
     EQ_NODE,
     NEQ_NODE,
-    NUM_NODE,
-    ARG_LIST_NODE,
-    STRING_NODE,
-    FCALL_NODE,
+    ASSIGN_NODE,
+    
+    BLOCK_NODE,
+    VDECL_LIST_NODE,
+    VDECL_NODE,
+    VUSE_NODE,
     FLIST_NODE,
     FDECL_NODE,
     FHEADER_NODE,
     FBODY_NODE,
-    FNAME_NODE
+    FNAME_NODE,
+    PLIST_NODE,
+    FCALL_NODE,
+    ALIST_NODE,
+    
+    NUM_NODE,
+    STRING_NODE
 } NodeKind;
 
 struct node; // Opaque structure to ensure encapsulation.
