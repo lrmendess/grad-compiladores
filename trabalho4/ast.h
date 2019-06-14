@@ -2,20 +2,38 @@
 #define AST_H
 
 typedef enum {
-    STMT_SEQ_NODE,
     IF_NODE,
-    REPEAT_NODE,
     ASSIGN_NODE,
     READ_NODE,
     WRITE_NODE,
+    OUTPUT_NODE,
+    INPUT_NODE,
+    RETURN_NODE,
+    WHILE_NODE,
+    BLOCK_NODE,
+    VAR_USE_NODE,
+    VAR_DECL_NODE,
+    VAR_DECL_LIST_NODE,
+    PARAM_LIST_NODE,
     PLUS_NODE,
     MINUS_NODE,
     TIMES_NODE,
     OVER_NODE,
     LT_NODE,
+    LE_NODE,
+    GT_NODE,
+    GE_NODE,
     EQ_NODE,
+    NEQ_NODE,
     NUM_NODE,
-    ID_NODE
+    ARG_LIST_NODE,
+    STRING_NODE,
+    FCALL_NODE,
+    FLIST_NODE,
+    FDECL_NODE,
+    FHEADER_NODE,
+    FBODY_NODE,
+    FNAME_NODE
 } NodeKind;
 
 struct node; // Opaque structure to ensure encapsulation.

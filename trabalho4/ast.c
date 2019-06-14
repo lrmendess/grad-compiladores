@@ -68,20 +68,38 @@ int get_child_count(AST *node) {
 
 char* kind2str(NodeKind kind) {
     switch(kind) {
-        case STMT_SEQ_NODE: return "stmt_seq";
         case IF_NODE: return "if";
-        case REPEAT_NODE: return "repeat";
         case READ_NODE: return "read";
         case WRITE_NODE: return "write";
+        case OUTPUT_NODE: return "output";
+        case INPUT_NODE: return "input";
+        case RETURN_NODE: return "return";
+        case WHILE_NODE: return "while";
+        case BLOCK_NODE: return "block";
+        case VAR_USE_NODE: return "var_use";
+        case VAR_DECL_NODE: return "var_decl";
+        case VAR_DECL_LIST_NODE: return "var_list";
+        case PARAM_LIST_NODE: return "param_list";
         case PLUS_NODE: return "+";
         case MINUS_NODE: return "-";
         case TIMES_NODE: return "*";
         case OVER_NODE: return "/";
         case LT_NODE: return "<";
-        case EQ_NODE: return "=";
-        case ASSIGN_NODE: return ":=";
+        case LE_NODE: return "<=";
+        case GT_NODE: return ">";
+        case GE_NODE: return ">=";
+        case EQ_NODE: return "==";
+        case NEQ_NODE: return "!=";
+        case ASSIGN_NODE: return "=";
         case NUM_NODE: return "num";
-        case ID_NODE: return "id";
+        case ARG_LIST_NODE: return "arg_list";
+        case STRING_NODE: return "string";
+        case FLIST_NODE: return "func_list";
+        case FDECL_NODE: return "func_decl";
+        case FHEADER_NODE: return "func_header";
+        case FBODY_NODE: return "func_body";
+        case FNAME_NODE: return "func_name";
+        case FCALL_NODE: return "fcall";
         default: return "ERROR!!";
     }
 }
@@ -111,7 +129,8 @@ void free_tree(AST *tree) {
 int nr;
 
 int has_data(NodeKind kind) {
-    if (kind == NUM_NODE) {
+    if (kind == NUM_NODE || kind == VAR_USE_NODE || kind == VAR_DECL_NODE ||
+        kind == FNAME_NODE || kind == FCALL_NODE || kind == STRING_NODE) {
         return 1;
     } else {
         return 0;

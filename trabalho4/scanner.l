@@ -8,10 +8,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ast.h"
 #include "parser.h"
 #include "tables.h"
 
 extern LitTable* litTable;
+extern VarTable* varTable;
+extern FuncTable* funcTable;
+
 extern char varName[128];
 %}
 
@@ -59,6 +63,7 @@ comment			\/\/.*
 "}"         	{ 	return RBRACE; 	}
 
 {number} {
+	yylval = new_node(NUM_NODE, atoi(yytext));
 	return NUM;
 }
 
@@ -71,7 +76,8 @@ comment			\/\/.*
 
 {string} {
 	/* Adicao de um literal na tabela de literais */
-	add_literal(litTable, yytext);
+	int index = add_literal(litTable, yytext);
+	yylval = new_node(STRING_NODE, index);
 	return STRING;
 }
 
