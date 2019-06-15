@@ -5,65 +5,75 @@
 #include <string.h>
 #include "ast.h"
 
-#define CHILDREN_LIMIT 20
-
 struct node {
     NodeKind kind;
     int data;
-    int count;
-    AST* child[CHILDREN_LIMIT]; // Don't try this at home, kids... :P
+    AST* next;
+    Children* children;
+};
+
+struct node_list {
+    int size;
+    AST* first;
+    AST* last;
 };
 
 AST* new_node(NodeKind kind, int data) {
-    AST* node = malloc(sizeof * node);
+    AST* node = (AST*) malloc(sizeof(AST));
+
     node->kind = kind;
     node->data = data;
-    node->count = 0;
-    for (int i = 0; i < CHILDREN_LIMIT; i++) {
-        node->child[i] = NULL;
-    }
+    node->next = NULL;
+
+    node->children = (Children*) malloc(sizeof(Children));
+    node->children->size = 0;
+    node->children->first = NULL;
+    node->children->last = NULL;
+    
     return node;
 }
 
-void add_child(AST *parent, AST *child) {
-    if (parent->count == CHILDREN_LIMIT) {
-        fprintf(stderr, "Cannot add another child!\n");
-        exit(1);
+void add_child(AST* parent, AST* child) {
+    if (parent->children->first == NULL) {
+        parent->children->first = child;
+    } else {
+        parent->children->last->next = child;
     }
-    parent->child[parent->count] = child;
-    parent->count++;
+
+    parent->children->last = child;
+    parent->children->size++;
 }
 
-AST* get_child(AST *parent, int idx) {
-    return parent->child[idx];
+AST* get_child(AST* parent, int idx) {
+    AST* aux = parent->children->first;
+    for (int i = 0; aux != NULL && i < idx; i++, aux = aux->next) { }
+    return aux;
 }
 
 AST* new_subtree(NodeKind kind, int child_count, ...) {
-    if (child_count > CHILDREN_LIMIT) {
-        fprintf(stderr, "Too many children as arguments!\n");
-        exit(1);
-    }
-
     AST* node = new_node(kind, 0);
     va_list ap;
     va_start(ap, child_count);
+
     for (int i = 0; i < child_count; i++) {
         add_child(node, va_arg(ap, AST*));
     }
+
     va_end(ap);
+
     return node;
 }
 
-NodeKind get_kind(AST *node) {
+NodeKind get_kind(AST* node) {
     return node->kind;
 }
 
-int get_data(AST *node) {
+int get_data(AST* node) {
     return node->data;
 }
 
-int get_child_count(AST *node) {
-    return node->count;
+int get_child_count(AST* node) {
+    return node->children->size;
 }
 
 char* kind2str(NodeKind kind) {
@@ -86,7 +96,6 @@ char* kind2str(NodeKind kind) {
         case EQ_NODE: return "==";
         case NEQ_NODE: return "!=";
         case ASSIGN_NODE: return "=";
-        
 
         case BLOCK_NODE: return "block";
         case VDECL_LIST_NODE: return "var_list";
@@ -108,23 +117,33 @@ char* kind2str(NodeKind kind) {
     }
 }
 
-void print_node(AST *node, int level) {
+void print_node(AST* node, int level) {
     printf("%d: Node -- Addr: %p -- Kind: %s -- Data: %d -- Count: %d\n",
-           level, node, kind2str(node->kind), node->data, node->count);
-    for (int i = 0; i < node->count; i++) {
-        print_node(node->child[i], level+1);
+           level, node, kind2str(node->kind), node->data, node->children->size);
+
+    for (AST* aux = node->children->first; aux != NULL; aux = aux->next) {
+        print_node(aux, level + 1);
     }
 }
 
-void print_tree(AST *tree) {
+void print_tree(AST* tree) {
     print_node(tree, 0);
 }
 
-void free_tree(AST *tree) {
-    if (tree == NULL) return;
-    for (int i = 0; i < tree->count; i++) {
-        free_tree(tree->child[i]);
+void free_tree(AST* tree) {
+    if (tree == NULL) {
+        return;
     }
+
+    AST* aux = tree->children->first;
+    AST* prev = aux;
+    while (aux != NULL) {
+        aux = aux->next;
+        free_tree(prev);
+        prev = aux;
+    }
+
+    free(tree->children);
     free(tree);
 }
 
@@ -141,21 +160,24 @@ int has_data(NodeKind kind) {
     }
 }
 
-int print_node_dot(AST *node) {
+int print_node_dot(AST* node) {
     int my_nr = nr++;
+
     if (has_data(node->kind)) {
         printf("node%d[label=\"%s,%d\"];\n", my_nr, kind2str(node->kind), node->data);
     } else {
         printf("node%d[label=\"%s\"];\n", my_nr, kind2str(node->kind));
     }
-    for (int i = 0; i < node->count; i++) {
-        int child_nr = print_node_dot(node->child[i]);
+
+    for (AST* aux = node->children->first; aux != NULL; aux = aux->next) {
+        int child_nr = print_node_dot(aux);
         printf("node%d -> node%d;\n", my_nr, child_nr);
     }
+
     return my_nr;
 }
 
-void print_dot(AST *tree) {
+void print_dot(AST* tree) {
     nr = 0;
     printf("digraph {\ngraph [ordering=\"out\"];\n");
     print_node_dot(tree);

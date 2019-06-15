@@ -149,8 +149,8 @@ var_decl:
 |	INT ID LBRACK NUM { var_size = atoi(yytext); } RBRACK SEMI
 	{
 		int index = add_variable(var_name, var_size);
-		free($4);
 		$$ = new_node(VDECL_NODE, index);
+		free_tree($4);
 	};
 
 stmt_list:
@@ -178,8 +178,8 @@ lval:
 |	lval_id LBRACK NUM RBRACK
 	{
 		int index = valid_variable(var_name);
-		free($3);
 		$$ = new_node(VUSE_NODE, index);
+		free_tree($3);
 	}
 
 |	lval_id LBRACK ID RBRACK
@@ -268,9 +268,11 @@ int main() {
 
 	if (yyparse() == 0) {
 		print_dot(ast);
+		// print_tree(ast);
 		free_tree(ast);
     }
 
+	// Libera os 3 blocos de memoria pendente do bison
 	yylex_destroy();
 
 	// success_print();
