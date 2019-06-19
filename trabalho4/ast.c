@@ -12,6 +12,12 @@ struct node {
     Children* children;
 };
 
+/*
+ * Estrutura de lista encadeada com sentinela para substituir o array de
+ * tamanho 20 que estava sendo usado na AST.
+ * Todos os "metodos" que utilizavam o array foram adaptados para utilizar
+ * a lista encadeada, assim mantendo a "interface" ja pre-definida.
+ */
 struct node_list {
     int size;
     AST* first;

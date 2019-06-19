@@ -267,15 +267,15 @@ int main() {
 	func_table = create_func_table();
 
 	if (yyparse() == 0) {
-		print_dot(ast);
+		// print_dot(ast);
 		// print_tree(ast);
 		free_tree(ast);
     }
 
-	// Libera os 3 blocos de memoria pendente do bison
+	// Libera os 3 blocos de memoria pendentes do bison
 	yylex_destroy();
 
-	// success_print();
+	success_print();
 
 	free_lit_table(lit_table);
 	free_var_table(var_table);
