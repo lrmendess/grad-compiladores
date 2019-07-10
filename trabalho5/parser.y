@@ -16,6 +16,7 @@
 #include <string.h>
 #include "ast.h"
 #include "tables.h"
+#include "interpreter.h"
 
 int yylex(void);
 void yyerror(char const *s);
@@ -269,13 +270,15 @@ int main() {
 	if (yyparse() == 0) {
 		// print_dot(ast);
 		// print_tree(ast);
+		stdin = fopen(ctermid(NULL), "r");
+		run_ast(ast);
 		free_tree(ast);
     }
 
 	// Libera os 3 blocos de memoria pendentes do bison
 	yylex_destroy();
 
-	success_print();
+	// success_print();
 
 	free_lit_table(lit_table);
 	free_var_table(var_table);
