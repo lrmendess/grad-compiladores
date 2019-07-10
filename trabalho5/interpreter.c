@@ -187,8 +187,9 @@ void run_vdecl_list(AST* ast) {
 void run_vdecl(AST* ast) {
     trace("vdecl");
 
-    int var_index = get_data(ast);
-    // set_offset(var_table, var_index, 0);
+    // int var_index = get_data(ast);
+    // int var_size = get_var_size(var_table, var_index);
+    // set_offset(var_table, var_index, get_free_mem_index());
 }
 
 void run_vuse(AST* ast) {

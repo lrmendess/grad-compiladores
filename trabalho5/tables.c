@@ -93,11 +93,11 @@ int add_var(VarTable* st, char* s, int line, int scope, int size) {
     return idx_added;
 }
 
-void set_offset(VarTable* st, int i, int offset) {
+void set_var_offset(VarTable* st, int i, int offset) {
     st->t[i].offset = offset;
 }
 
-int get_offset(VarTable* st, int i) {
+int get_var_offset(VarTable* st, int i) {
     return st->t[i].offset;
 }
 
