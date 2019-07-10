@@ -1,6 +1,8 @@
 #ifndef TABLES_H
 #define TABLES_H
 
+#include "ast.h"
+
 // Literals Table
 // ----------------------------------------------------------------------------
 
@@ -45,7 +47,7 @@ VarTable* create_var_table();
 int add_var(VarTable* st, char* s, int line, int scope, int size);
 
 // Returns the index where the given variable is stored or -1 otherwise.
-int lookup_var(VarTable* st, char* s, int currentScope);
+int lookup_var(VarTable* st, char* s, int current_scope);
 
 // Returns the variable name stored at the given index.
 // No check is made by this function, so make sure that the index is valid first.
@@ -85,6 +87,13 @@ int add_func(FuncTable* fn, char* s, int line, int arity);
 
 // Returns the index where the given function is stored or -1 otherwise.
 int lookup_func(FuncTable* fn, char* s);
+
+/*
+ * Novas funcoes
+ */
+void set_func_ast(FuncTable* fn, int i, AST* func_ast);
+
+AST* get_func_ast(FuncTable* fn, int i);
 
 // Returns the function name stored at the given index.
 // No check is made by this function, so make sure that the index is valid first.

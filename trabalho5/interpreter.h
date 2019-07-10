@@ -6,6 +6,7 @@
 #include <string.h>
 #include "ast.h"
 #include "tables.h"
+#include "frame.h"
 
 void run_ast(AST* ast);
 

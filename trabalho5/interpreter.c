@@ -1,58 +1,44 @@
 #include "interpreter.h"
 
 extern LitTable* lit_table;
+extern VarTable* var_table;
+extern FuncTable* func_table;
 
 // Data stack -----------------------------------------------------------------
 
-#define STACK_SIZE 512
+#define DATA_STACK_SIZE 512
 
-int stack[STACK_SIZE];
-int stack_pointer;
+int stack[DATA_STACK_SIZE];
+int sp;
 
 void push(int arg) {
-    stack[++stack_pointer] = arg;
+    stack[++sp] = arg;
 }
 
 int pop() {
-    return stack[stack_pointer--];
+    return stack[sp--];
 }
 
 void new_stack() {
-    memset(stack, 0, sizeof(int) * STACK_SIZE);
-    stack_pointer = -1;
+    memset(stack, 0, sizeof(int) * DATA_STACK_SIZE);
+    sp = -1;
 }
 
 void print_stack() {
     printf("*** STACK: ");
-    for (int i = 0; i <= stack_pointer; i++) {
+    for (int i = 0; i <= sp; i++) {
         printf("%d ", stack[i]);
     }
     printf("\n");
 }
 
-// ----------------------------------------------------------------------------
+// Frame stack ----------------------------------------------------------------
 
-// Variables memory -----------------------------------------------------------
-
-#define MEM_SIZE 256
-
-int mem[MEM_SIZE];
-
-void store(int addr, int val) {
-    mem[addr] = val;
-}
-
-int load(int addr) {
-    return mem[addr];
-}
-
-void new_mem() {
-    memset(mem, 0, sizeof(int) * MEM_SIZE);
-}
+FrameStack* frame_stack;
 
 // ----------------------------------------------------------------------------
 
-// #define TRACE
+#define TRACE
 #ifdef TRACE
 #define trace(msg) printf("TRACE: %s\n", msg)
 #else
@@ -62,22 +48,26 @@ void new_mem() {
 void rec_run_ast(AST *ast);
 
 void run_if(AST* ast) {
-
+    trace("if");
 }
 
 void run_input(AST* ast) {
+    trace("input");
 
 }
 
 void run_output(AST* ast) {
+    trace("output");
 
 }
 
 void run_return(AST* ast) {
+    trace("return");
 
 }
 
 void run_while(AST* ast) {
+    trace("while");
 
 }
 
@@ -92,10 +82,10 @@ void run_write(AST* ast) {
 
     for (int i = 1; i < len; i++) {
         if (string[i] == '\\' && (i + 1) < len) {
-            if (string[++i] == 'n') {
-                printf("\n");
+            if (string[i + 1] == 'n') {
+                printf("\n"); i++;
             } else {
-                printf("%c%c", string[i - 1], string[i]);
+                printf("%c", string[i]);
             }
         } else {
             printf("%c", string[i]);
@@ -110,46 +100,67 @@ void run_write(AST* ast) {
     int l = pop()
 
 void run_plus(AST* ast) {
-
+    trace("plus");
+    bin_op();
+    push(l + r);
 }
 
 void run_minus(AST* ast) {
-
+    trace("minus");
+    bin_op();
+    push(l - r);
 }
 
 void run_times(AST* ast) {
-
+    trace("times");
+    bin_op();
+    push(l * r);
 }
 
 void run_over(AST* ast) {
-
+    trace("over");
+    bin_op();
+    push((int) l / r);
 }
 
 void run_lt(AST* ast) {
-
+    trace("lt");
+    bin_op();
+    push(l < r);
 }
 
 void run_le(AST* ast) {
-
+    trace("le");
+    bin_op();
+    push(l <= r);
 }
 
 void run_gt(AST* ast) {
-
+    trace("gt");
+    bin_op();
+    push(l > r);
 }
 
 void run_ge(AST* ast) {
-
+    trace("ge");
+    bin_op();
+    push(l >= r);
 }
 
 void run_eq(AST* ast) {
-
+    trace("eq");
+    bin_op();
+    push(l == r);
 }
 
 void run_neq(AST* ast) {
-
+    trace("neq");
+    bin_op();
+    push(l != r);
 }
 
 void run_assign(AST* ast) {
+    trace("assign");
 
 }
 
@@ -174,10 +185,14 @@ void run_vdecl_list(AST* ast) {
 }
 
 void run_vdecl(AST* ast) {
+    trace("vdecl");
 
+    int var_index = get_data(ast);
+    // set_offset(var_table, var_index, 0);
 }
 
 void run_vuse(AST* ast) {
+    trace("vuse");
 
 }
 
@@ -222,27 +237,46 @@ void run_fbody(AST* ast) {
 }
 
 void run_fname(AST* ast) {
+    trace("fname");
 
 }
 
 void run_plist(AST* ast) {
+    trace("plist");
+    int size = get_child_count(ast);
 
+    for (int i = 0; i < size; i++) {
+        AST* child = get_child(ast, i);
+        rec_run_ast(child);
+    }
 }
 
 void run_fcall(AST* ast) {
+    trace("fcall");
 
 }
 
 void run_alist(AST* ast) {
+    trace("alist");
+    int size = get_child_count(ast);
 
+    for (int i = 0; i < size; i++) {
+        AST* child = get_child(ast, i);
+        rec_run_ast(child);
+    }
 }
 
 void run_num(AST* ast) {
+    trace("num");
+    int num = get_data(ast);
 
+    push(num);
 }
 
 void run_string(AST* ast) {
+    trace("string");
     int index = get_data(ast);
+
     push(index);
 }
 
@@ -353,7 +387,8 @@ void rec_run_ast(AST *ast) {
 
 void run_ast(AST* ast) {
     new_stack();
-    new_mem();
+    frame_stack = new_frame_stack();
+
     rec_run_ast(ast);
 }
 

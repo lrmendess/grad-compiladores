@@ -1,4 +1,3 @@
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <string.h>
@@ -48,7 +47,7 @@ void free_lit_table(LitTable* lt) {
     free(lt);
 }
 
-// Symbols Table
+// Variables Table
 // ----------------------------------------------------------------------------
 
 #define VARIABLE_MAX_SIZE 128
@@ -59,6 +58,7 @@ typedef struct {
     int line;
     int scope;
     int size;
+    int offset;
 } VariableEntry;
 
 struct var_table {
@@ -72,10 +72,10 @@ VarTable* create_var_table() {
     return st;
 }
 
-int lookup_var(VarTable* st, char* s, int currentScope) {
+int lookup_var(VarTable* st, char* s, int current_scope) {
     for (int i = 0; i < st->size; i++) {
 //      Checa se uma variavel de mesmo escopo esta na tabela de variaveis
-        if ((strcmp(st->t[i].name, s) == 0) && (st->t[i].scope == currentScope)) {
+        if ((strcmp(st->t[i].name, s) == 0) && (st->t[i].scope == current_scope)) {
             return i;
         }
     }
@@ -87,9 +87,18 @@ int add_var(VarTable* st, char* s, int line, int scope, int size) {
     st->t[st->size].line = line;
     st->t[st->size].scope = scope;
     st->t[st->size].size = size;
+    st->t[st->size].offset = -1;
     int idx_added = st->size;
     st->size++;
     return idx_added;
+}
+
+void set_offset(VarTable* st, int i, int offset) {
+    st->t[i].offset = offset;
+}
+
+int get_offset(VarTable* st, int i) {
+    return st->t[i].offset;
 }
 
 char* get_var_name(VarTable* st, int i) {
@@ -133,6 +142,7 @@ typedef struct {
     char name[FUNCTION_MAX_SIZE];
     int line;
     int arity;
+    AST* func_ast;
 } FunctionEntry;
 
 struct func_table {
@@ -162,6 +172,14 @@ int add_func(FuncTable* fn, char* s, int line, int arity) {
     int idx_added = fn->size;
     fn->size++;
     return idx_added;
+}
+
+void set_func_ast(FuncTable* fn, int i, AST* func_ast) {
+    fn->t[i].func_ast = func_ast;
+}
+
+AST* get_func_ast(FuncTable* fn, int i) {
+    return fn->t[i].func_ast;
 }
 
 char* get_func_name(FuncTable* fn, int i) {

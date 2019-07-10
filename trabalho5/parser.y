@@ -79,7 +79,15 @@ func_decl_list:
 |	func_decl					{ $$ = new_subtree(FLIST_NODE, 1, $1); };
 
 func_decl:
-	func_header func_body { $$ = new_subtree(FDECL_NODE, 2, $1, $2); };
+	func_header func_body
+	{
+		$$ = new_subtree(FDECL_NODE, 2, $1, $2);
+		// Adicionar a representacao da funcao em forma de arvore
+		// na tabela de funcoes 
+		AST* func_header_ast = get_child($1, 0);
+		int func_header_index = get_data(func_header_ast);
+		set_func_ast(func_table, func_header_index, $$);
+	};
 
 func_header:
 	ret_type ID { strcpy(func_name, var_name); } LPAREN params RPAREN

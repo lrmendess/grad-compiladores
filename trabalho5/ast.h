@@ -38,29 +38,25 @@ typedef enum {
     STRING_NODE
 } NodeKind;
 
-struct node; // Opaque structure to ensure encapsulation.
-
+struct node;
 typedef struct node AST;
 
 struct node_list;
-
 typedef struct node_list Children;
 
-AST* new_node(NodeKind kind, int data);
-
-void add_child(AST *parent, AST *child);
-AST* get_child(AST *parent, int idx);
-
-AST* new_subtree(NodeKind kind, int child_count, ...);
-
-NodeKind get_kind(AST *node);
-char* kind2str(NodeKind kind);
 int get_data(AST *node);
 int get_child_count(AST *node);
 
-void print_tree(AST *ast);
-void print_dot(AST *ast);
+char* kind2str(NodeKind kind);
 
+void add_child(AST *parent, AST *child);
+void print_tree(AST *ast);
 void free_tree(AST *ast);
+
+AST* new_node(NodeKind kind, int data);
+AST* get_child(AST *parent, int idx);
+AST* new_subtree(NodeKind kind, int child_count, ...);
+
+NodeKind get_kind(AST *node);
 
 #endif
