@@ -12,7 +12,7 @@ struct frame_stack {
 
 Frame* new_frame() {
     Frame* frame = (Frame*) malloc(sizeof(Frame));
-    memset(frame->mem, 0, sizeof(int) * 512);
+    memset(frame->mem, 0, sizeof(int) * MEM_SIZE);
     frame->free_mem_index = 0;
     frame->previous = NULL;
     return frame;
@@ -49,5 +49,10 @@ void push_frame(FrameStack* stack, Frame* frame) {
 Frame* pop_frame(FrameStack* stack) {
     Frame* top = stack->top;
     stack->top = top->previous;
+    return top;
+}
+
+Frame* peek_frame(FrameStack* stack) {
+    Frame* top = stack->top;
     return top;
 }

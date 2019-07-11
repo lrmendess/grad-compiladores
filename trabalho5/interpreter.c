@@ -34,9 +34,40 @@ void print_stack() {
 
 // Frame stack ----------------------------------------------------------------
 
-FrameStack* frame_stack;
+#define FRAME_STACK_SIZE 512
+#define MEM_SIZE 1024
 
-// ----------------------------------------------------------------------------
+typedef struct frame {
+    int mem[MEM_SIZE];
+    int free_index;
+} Frame;
+
+Frame* fstack[FRAME_STACK_SIZE];
+int fp;
+
+void new_fstack() {
+    for (int i = 0; i < FRAME_STACK_SIZE; i++) {
+        fstack[i] = NULL;
+    }
+    fp = -1;
+}
+
+Frame* new_frame() {
+    Frame* frame = (Frame*) malloc(sizeof(Frame));
+    memset(frame->mem, 0, sizeof(int) * MEM_SIZE);
+    frame->free_index = 0;
+    return frame;
+}
+
+void fpush(Frame* frame) {
+    fstack[++fp] = frame;
+}
+
+Frame* fpop() {
+    return fstack[fp--];
+}
+
+// Interpreter ----------------------------------------------------------------
 
 #define TRACE
 #ifdef TRACE
@@ -187,9 +218,11 @@ void run_vdecl_list(AST* ast) {
 void run_vdecl(AST* ast) {
     trace("vdecl");
 
-    // int var_index = get_data(ast);
-    // int var_size = get_var_size(var_table, var_index);
-    // set_offset(var_table, var_index, get_free_mem_index());
+    int var_index = get_data(ast);
+    int var_size = get_var_size(var_table, var_index);
+
+    // set_var_offset(var_table, var_index, fstack[fp].free_index);
+    // fstack[fp].free_index += var_size;
 }
 
 void run_vuse(AST* ast) {
@@ -388,8 +421,7 @@ void rec_run_ast(AST *ast) {
 
 void run_ast(AST* ast) {
     new_stack();
-    frame_stack = new_frame_stack();
-
+    new_fstack();
     rec_run_ast(ast);
 }
 
