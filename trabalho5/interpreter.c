@@ -8,19 +8,33 @@ extern FuncTable* func_table;
 
 #define DATA_STACK_SIZE 512
 
-int stack[DATA_STACK_SIZE];
+int* stack[DATA_STACK_SIZE];
 int sp;
 
 void push(int arg) {
+    stack[sp + 1] = (int*) malloc(sizeof(int));
+    *stack[++sp] = arg;
+}
+
+void push_ref(int* arg) {
     stack[++sp] = arg;
 }
 
 int pop() {
+    int value = *stack[sp];
+    free(stack[sp--]);
+
+    return value;
+}
+
+int* pop_ref() {
     return stack[sp--];
 }
 
 void new_stack() {
-    memset(stack, 0, sizeof(int) * DATA_STACK_SIZE);
+    for (int i = 0; i < DATA_STACK_SIZE; i++) {
+        stack[i] = NULL;
+    }
     sp = -1;
 }
 
@@ -61,7 +75,7 @@ Frame* fpop() {
 
 // Interpreter ----------------------------------------------------------------
 
-// #define TRACE
+#define TRACE
 #ifdef TRACE
 #define trace(msg) printf("TRACE: %s\n", msg)
 #else

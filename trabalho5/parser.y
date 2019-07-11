@@ -188,7 +188,8 @@ lval:
 	{
 		int index = valid_variable(var_name);
 		$$ = new_node(VUSE_NODE, index);
-		free_tree($3);
+		add_child($$, $3);
+		// free_tree($3);
 	}
 
 |	lval_id LBRACK ID RBRACK
