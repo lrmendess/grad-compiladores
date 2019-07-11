@@ -69,7 +69,7 @@ Frame* fpop() {
 
 // Interpreter ----------------------------------------------------------------
 
-#define TRACE
+// #define TRACE
 #ifdef TRACE
 #define trace(msg) printf("TRACE: %s\n", msg)
 #else
@@ -85,11 +85,19 @@ void run_if(AST* ast) {
 void run_input(AST* ast) {
     trace("input");
 
+    int temp;
+    scanf("%d", &temp);
+    printf("input: %d\n", temp);
+    push(temp);
 }
 
 void run_output(AST* ast) {
     trace("output");
 
+    rec_run_ast(get_child(ast, 0));
+    int arg = pop();
+
+    printf("%d", arg);
 }
 
 void run_return(AST* ast) {
@@ -193,6 +201,13 @@ void run_neq(AST* ast) {
 void run_assign(AST* ast) {
     trace("assign");
 
+    int var_index = get_data(get_child(ast, 0));
+    int offset = get_var_offset(var_table, var_index);
+
+    rec_run_ast(get_child(ast, 1));
+    int value = pop();
+
+    fstack[fp]->mem[offset] = value;
 }
 
 void run_block(AST* ast) {
@@ -221,13 +236,22 @@ void run_vdecl(AST* ast) {
     int var_index = get_data(ast);
     int var_size = get_var_size(var_table, var_index);
 
-    // set_var_offset(var_table, var_index, fstack[fp].free_index);
-    // fstack[fp].free_index += var_size;
+    set_var_offset(var_table, var_index, fstack[fp]->free_index);
+
+    if (var_size <= 0) {
+        fstack[fp]->free_index += 1;
+    } else {
+        fstack[fp]->free_index += var_size;
+    }
 }
 
 void run_vuse(AST* ast) {
     trace("vuse");
 
+    int index = get_data(ast);
+    int offset = get_var_offset(var_table, index);
+
+    push(fstack[fp]->mem[offset]);
 }
 
 void run_flist(AST* ast) {
@@ -242,6 +266,10 @@ void run_flist(AST* ast) {
 
 void run_fdecl(AST* ast) {
     trace("fdecl");
+
+    Frame* frame = new_frame();
+    fpush(frame);
+
     int size = get_child_count(ast);
 
     for (int i = 0; i < size; i++) {

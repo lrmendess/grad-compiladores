@@ -49,6 +49,10 @@ int add_var(VarTable* st, char* s, int line, int scope, int size);
 // Returns the index where the given variable is stored or -1 otherwise.
 int lookup_var(VarTable* st, char* s, int current_scope);
 
+void set_var_offset(VarTable* st, int i, int offset);
+
+int get_var_offset(VarTable* st, int i);
+
 // Returns the variable name stored at the given index.
 // No check is made by this function, so make sure that the index is valid first.
 char* get_var_name(VarTable* st, int i);

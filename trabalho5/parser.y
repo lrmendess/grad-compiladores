@@ -276,8 +276,6 @@ int main() {
 	func_table = create_func_table();
 
 	if (yyparse() == 0) {
-		// print_dot(ast);
-		// print_tree(ast);
 		stdin = fopen(ctermid(NULL), "r");
 		run_ast(ast);
 		free_tree(ast);
@@ -285,8 +283,6 @@ int main() {
 
 	// Libera os 3 blocos de memoria pendentes do bison
 	yylex_destroy();
-
-	// success_print();
 
 	free_lit_table(lit_table);
 	free_var_table(var_table);
