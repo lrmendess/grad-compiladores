@@ -80,6 +80,18 @@ void rec_run_ast(AST *ast);
 
 void run_if(AST* ast) {
     trace("if");
+
+    rec_run_ast(get_child(ast, 0));
+    int boolean_value = pop();
+    int child_count = get_child_count(ast);
+
+    if (boolean_value) {
+        rec_run_ast(get_child(ast, 1));
+    } else {
+        if (child_count == 3) {
+            rec_run_ast(get_child(ast, 2));
+        }
+    }
 }
 
 void run_input(AST* ast) {
@@ -103,11 +115,20 @@ void run_output(AST* ast) {
 void run_return(AST* ast) {
     trace("return");
 
+    rec_run_ast(get_child(ast, 0));
 }
 
 void run_while(AST* ast) {
     trace("while");
 
+    rec_run_ast(get_child(ast, 0));
+    int boolean_value = pop();
+
+    while (boolean_value) {
+        rec_run_ast(get_child(ast, 1));
+        rec_run_ast(get_child(ast, 0));
+        boolean_value = pop();
+    }
 }
 
 void run_write(AST* ast) {
@@ -256,6 +277,10 @@ void run_vuse(AST* ast) {
 
 void run_flist(AST* ast) {
     trace("flist");
+
+    Frame* frame = new_frame();
+    fpush(frame);
+
     int size = get_child_count(ast);
 
     for (int i = 0; i < size; i++) {
@@ -266,9 +291,6 @@ void run_flist(AST* ast) {
 
 void run_fdecl(AST* ast) {
     trace("fdecl");
-
-    Frame* frame = new_frame();
-    fpush(frame);
 
     int size = get_child_count(ast);
 
@@ -300,7 +322,6 @@ void run_fbody(AST* ast) {
 
 void run_fname(AST* ast) {
     trace("fname");
-
 }
 
 void run_plist(AST* ast) {
@@ -316,6 +337,7 @@ void run_plist(AST* ast) {
 void run_fcall(AST* ast) {
     trace("fcall");
 
+    
 }
 
 void run_alist(AST* ast) {
