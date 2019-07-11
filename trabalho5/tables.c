@@ -7,7 +7,7 @@
 // ----------------------------------------------------------------------------
 
 #define LITERAL_MAX_SIZE 128
-#define LITERALS_TABLE_MAX_SIZE 100
+#define LITERALS_TABLE_MAX_SIZE 512
 
 struct lit_table {
     char t[LITERALS_TABLE_MAX_SIZE][LITERAL_MAX_SIZE];
@@ -51,7 +51,7 @@ void free_lit_table(LitTable* lt) {
 // ----------------------------------------------------------------------------
 
 #define VARIABLE_MAX_SIZE 128
-#define VARIABLE_TABLE_MAX_SIZE 100
+#define VARIABLE_TABLE_MAX_SIZE 512
 
 typedef struct {
     char name[VARIABLE_MAX_SIZE];
@@ -136,7 +136,7 @@ void free_var_table(VarTable* st) {
 // ----------------------------------------------------------------------------
 
 #define FUNCTION_MAX_SIZE 128
-#define FUNCTION_TABLE_MAX_SIZE 100
+#define FUNCTION_TABLE_MAX_SIZE 512
 
 typedef struct {
     char name[FUNCTION_MAX_SIZE];

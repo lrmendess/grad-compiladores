@@ -278,6 +278,7 @@ int main() {
 	if (yyparse() == 0) {
 		stdin = fopen(ctermid(NULL), "r");
 		run_ast(ast);
+		fclose(stdin);
 		free_tree(ast);
     }
 

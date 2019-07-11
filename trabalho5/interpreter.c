@@ -24,14 +24,6 @@ void new_stack() {
     sp = -1;
 }
 
-void print_stack() {
-    printf("*** STACK: ");
-    for (int i = 0; i <= sp; i++) {
-        printf("%d ", stack[i]);
-    }
-    printf("\n");
-}
-
 // Frame stack ----------------------------------------------------------------
 
 #define FRAME_STACK_SIZE 512
@@ -281,12 +273,9 @@ void run_flist(AST* ast) {
     Frame* frame = new_frame();
     fpush(frame);
 
-    int size = get_child_count(ast);
+    rec_run_ast(get_child(ast, get_child_count(ast) - 1));
 
-    for (int i = 0; i < size; i++) {
-        AST* child = get_child(ast, i);
-        rec_run_ast(child);
-    }
+    free(fpop());
 }
 
 void run_fdecl(AST* ast) {
@@ -302,12 +291,8 @@ void run_fdecl(AST* ast) {
 
 void run_fheader(AST* ast) {
     trace("fheader");
-    int size = get_child_count(ast);
 
-    for (int i = 0; i < size; i++) {
-        AST* child = get_child(ast, i);
-        rec_run_ast(child);
-    }
+    rec_run_ast(get_child(ast, 1));
 }
 
 void run_fbody(AST* ast) {
@@ -328,16 +313,38 @@ void run_plist(AST* ast) {
     trace("plist");
     int size = get_child_count(ast);
 
-    for (int i = 0; i < size; i++) {
+    for (int i = size - 1; i >= 0; i--) {
         AST* child = get_child(ast, i);
         rec_run_ast(child);
+        
+        int var_index = get_data(child);
+        int offset = get_var_offset(var_table, var_index);
+
+        int value = pop();
+        fstack[fp]->mem[offset] = value;
     }
 }
 
 void run_fcall(AST* ast) {
     trace("fcall");
 
-    
+    // Executa o arg_list de fcall para empilhar os valores
+    // passados como parametro para a funcao chamada
+    AST* arg_list = get_child(ast, 0);
+    rec_run_ast(arg_list);
+
+    // Executa o header da funcao chamada para que as variaveis
+    // sejam criadas e assim possamos atribuir os valores da lista
+    // de argumentos de fcall para as variaveis de fhead
+    fpush(new_frame());
+
+    int index = get_data(ast);
+    AST* func_ast = get_func_ast(func_table, index);
+
+    rec_run_ast(get_child(func_ast, 0));
+    rec_run_ast(get_child(func_ast, 1));
+
+    free(fpop());
 }
 
 void run_alist(AST* ast) {
