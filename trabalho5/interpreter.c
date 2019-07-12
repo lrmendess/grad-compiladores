@@ -8,74 +8,39 @@ extern FuncTable* func_table;
 
 #define DATA_STACK_SIZE 512
 
-int* stack[DATA_STACK_SIZE];
+int stack[DATA_STACK_SIZE];
 int sp;
 
 void push(int arg) {
-    stack[sp + 1] = (int*) malloc(sizeof(int));
-    *stack[++sp] = arg;
-}
-
-void push_ref(int* arg) {
     stack[++sp] = arg;
 }
 
 int pop() {
-    int value = *stack[sp];
-    free(stack[sp--]);
-
-    return value;
-}
-
-int* pop_ref() {
     return stack[sp--];
 }
 
 void new_stack() {
-    for (int i = 0; i < DATA_STACK_SIZE; i++) {
-        stack[i] = NULL;
-    }
+    memset(stack, 0, sizeof(int) * DATA_STACK_SIZE);
     sp = -1;
 }
 
 // Frame stack ----------------------------------------------------------------
 
-#define FRAME_STACK_SIZE 512
-#define MEM_SIZE 1024
+#define FRAME_STACK_SIZE 2048
 
-typedef struct frame {
-    int mem[MEM_SIZE];
-    int free_index;
-} Frame;
-
-Frame* fstack[FRAME_STACK_SIZE];
-int fp;
+int fstack[FRAME_STACK_SIZE];
+int ftop;
+int fbase;
 
 void new_fstack() {
-    for (int i = 0; i < FRAME_STACK_SIZE; i++) {
-        fstack[i] = NULL;
-    }
-    fp = -1;
-}
-
-Frame* new_frame() {
-    Frame* frame = (Frame*) malloc(sizeof(Frame));
-    memset(frame->mem, 0, sizeof(int) * MEM_SIZE);
-    frame->free_index = 0;
-    return frame;
-}
-
-void fpush(Frame* frame) {
-    fstack[++fp] = frame;
-}
-
-Frame* fpop() {
-    return fstack[fp--];
+    memset(fstack, 0, sizeof(int) * FRAME_STACK_SIZE);
+    ftop = 0;
+    fbase = 0;
 }
 
 // Interpreter ----------------------------------------------------------------
 
-#define TRACE
+// #define TRACE
 #ifdef TRACE
 #define trace(msg) printf("TRACE: %s\n", msg)
 #else
@@ -93,10 +58,8 @@ void run_if(AST* ast) {
 
     if (boolean_value) {
         rec_run_ast(get_child(ast, 1));
-    } else {
-        if (child_count == 3) {
-            rec_run_ast(get_child(ast, 2));
-        }
+    } else if (child_count == 3) {
+        rec_run_ast(get_child(ast, 2));
     }
 }
 
@@ -228,13 +191,29 @@ void run_neq(AST* ast) {
 void run_assign(AST* ast) {
     trace("assign");
 
-    int var_index = get_data(get_child(ast, 0));
-    int offset = get_var_offset(var_table, var_index);
-
     rec_run_ast(get_child(ast, 1));
     int value = pop();
 
-    fstack[fp]->mem[offset] = value;
+    AST* var_node = get_child(ast, 0);
+
+    int var_index = get_data(var_node);
+    int offset = get_var_offset(var_table, var_index);
+    int var_size = get_var_size(var_table, var_index);
+
+    // Caso seja uma referencia para um vetor
+    if (var_size == -1) {
+        rec_run_ast(get_child(var_node, 0));
+        int step = pop();
+        fstack[fstack[offset] + step] = value;
+    // Caso seja um vetor estatico
+    } else if (var_size > 0) {
+        rec_run_ast(get_child(var_node, 0));
+        int step = pop();
+        fstack[offset + step] = value;
+    // Caso seja apenas um inteiro
+    } else {
+        fstack[offset] = value;
+    }
 }
 
 void run_block(AST* ast) {
@@ -263,12 +242,12 @@ void run_vdecl(AST* ast) {
     int var_index = get_data(ast);
     int var_size = get_var_size(var_table, var_index);
 
-    set_var_offset(var_table, var_index, fstack[fp]->free_index);
+    set_var_offset(var_table, var_index, ftop);
 
-    if (var_size <= 0) {
-        fstack[fp]->free_index += 1;
+    if (var_size > 0) {
+        ftop += var_size;
     } else {
-        fstack[fp]->free_index += var_size;
+        ftop++;
     }
 }
 
@@ -277,19 +256,44 @@ void run_vuse(AST* ast) {
 
     int index = get_data(ast);
     int offset = get_var_offset(var_table, index);
+    int var_size = get_var_size(var_table, index);
 
-    push(fstack[fp]->mem[offset]);
+    // Caso seja uma referencia para um vetor
+    if (var_size == -1) {
+        // Caso estejamos acessando algum valor desse vetor
+        if (get_child_count(ast) > 0) {
+            rec_run_ast(get_child(ast, 0));
+            int step = pop();
+            //printf("offset: %d, step: %d, value: %d\n", fstack[offset], step, fstack[fstack[offset] + step]);
+            push(fstack[fstack[offset] + step]);
+        // Caso estejamos passando o vetor como referencia
+        } else {
+            push(fstack[offset]);
+        }
+    // Caso seja um vetor estatico
+    } else if (var_size > 0) {
+        // Caso estejamos acessando algum valor desse vetor
+        if (get_child_count(ast) > 0) {
+            rec_run_ast(get_child(ast, 0));
+            int step = pop();
+            push(fstack[offset + step]);
+        // Caso estejamos passando o vetor como referencia
+        } else {
+            push(offset);
+        }
+    // Caso seja apenas um inteiro
+    } else {
+        push(fstack[offset]);
+    }
 }
 
 void run_flist(AST* ast) {
     trace("flist");
 
-    Frame* frame = new_frame();
-    fpush(frame);
+    ftop = 0;
+    fbase = 0;
 
     rec_run_ast(get_child(ast, get_child_count(ast) - 1));
-
-    free(fpop());
 }
 
 void run_fdecl(AST* ast) {
@@ -328,14 +332,14 @@ void run_plist(AST* ast) {
     int size = get_child_count(ast);
 
     for (int i = size - 1; i >= 0; i--) {
-        AST* child = get_child(ast, i);
-        rec_run_ast(child);
-        
-        int var_index = get_data(child);
+        AST* param = get_child(ast, i);
+        rec_run_ast(param);
+
+        int var_index = get_data(param);
         int offset = get_var_offset(var_table, var_index);
 
-        int value = pop();
-        fstack[fp]->mem[offset] = value;
+        fstack[offset] = pop();
+        // printf("offset: %d, pop: %d, new_value: %d\n", offset, fstack[offset], fstack[offset]);
     }
 }
 
@@ -350,15 +354,16 @@ void run_fcall(AST* ast) {
     // Executa o header da funcao chamada para que as variaveis
     // sejam criadas e assim possamos atribuir os valores da lista
     // de argumentos de fcall para as variaveis de fhead
-    fpush(new_frame());
+    fstack[ftop] = fbase;
+    fbase = ftop++;
 
     int index = get_data(ast);
     AST* func_ast = get_func_ast(func_table, index);
 
-    rec_run_ast(get_child(func_ast, 0));
-    rec_run_ast(get_child(func_ast, 1));
+    rec_run_ast(func_ast);
 
-    free(fpop());
+    ftop = fbase;
+    fbase = fstack[fbase];
 }
 
 void run_alist(AST* ast) {
