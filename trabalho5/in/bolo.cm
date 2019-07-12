@@ -1,0 +1,13 @@
+void bolo(int a) {
+    if (a == 1) {
+        bolo(a + 1);
+    } else {
+        a = a + 1;
+    }
+    output(a);
+    write("\n");
+}
+
+void main(void) {
+    bolo(1);
+}
