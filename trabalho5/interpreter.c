@@ -11,14 +11,23 @@ extern FuncTable* func_table;
 int stack[DATA_STACK_SIZE];
 int sp;
 
+/*
+ * Insere um valor no topo da pilha
+ */
 void push(int arg) {
     stack[++sp] = arg;
 }
 
+/*
+ * Retorna o valor do topo da pilha
+ */
 int pop() {
     return stack[sp--];
 }
 
+/*
+ * Inicializa a pilha de dados
+ */
 void new_stack() {
     memset(stack, 0, sizeof(int) * DATA_STACK_SIZE);
     sp = -1;
@@ -32,6 +41,9 @@ int fstack[FRAME_STACK_SIZE];
 int ftop;
 int fbase;
 
+/*
+ * Inicializa a pilha de frames
+ */
 void new_fstack() {
     memset(fstack, 0, sizeof(int) * FRAME_STACK_SIZE);
     ftop = 0;
@@ -52,12 +64,14 @@ void rec_run_ast(AST *ast);
 void run_if(AST* ast) {
     trace("if");
 
+    // Empilhamento do resultado da condicao do if
     rec_run_ast(get_child(ast, 0));
     int boolean_value = pop();
     int child_count = get_child_count(ast);
 
     if (boolean_value) {
         rec_run_ast(get_child(ast, 1));
+    // Tratamento do caso onde possa ou nao existir um else
     } else if (child_count == 3) {
         rec_run_ast(get_child(ast, 2));
     }
@@ -90,11 +104,14 @@ void run_return(AST* ast) {
 void run_while(AST* ast) {
     trace("while");
 
+    // Empilha o booleano referente a condicao do while
     rec_run_ast(get_child(ast, 0));
     int boolean_value = pop();
 
     while (boolean_value) {
+        // Executa o bloco do while
         rec_run_ast(get_child(ast, 1));
+        // Reavalia a condicao do while
         rec_run_ast(get_child(ast, 0));
         boolean_value = pop();
     }
@@ -109,6 +126,7 @@ void run_write(AST* ast) {
 
     int len = strlen(string) - 1;
 
+    // Tratamento das aspas e quebras linha
     for (int i = 1; i < len; i++) {
         if (string[i] == '\\' && (i + 1) < len) {
             if (string[i + 1] == 'n') {
@@ -191,6 +209,7 @@ void run_neq(AST* ast) {
 void run_assign(AST* ast) {
     trace("assign");
 
+    // Reserva o valor apos o sinal de atribuicao
     rec_run_ast(get_child(ast, 1));
     int value = pop();
 
@@ -200,17 +219,19 @@ void run_assign(AST* ast) {
     int offset = get_var_offset(var_table, var_index);
     int var_size = get_var_size(var_table, var_index);
 
-    // Caso seja uma referencia para um vetor
+    // Caso seja uma referencia para um vetor de outro frame
     if (var_size == -1) {
         rec_run_ast(get_child(var_node, 0));
         int step = pop();
+        // Na posicao de memoria fstack[offset] esta armazenado o offset
+        // da primeira posicao do vetor apontado
         fstack[fstack[offset] + step] = value;
-    // Caso seja um vetor estatico
+    // Caso seja um vetor local
     } else if (var_size > 0) {
         rec_run_ast(get_child(var_node, 0));
         int step = pop();
         fstack[offset + step] = value;
-    // Caso seja apenas um inteiro
+    // Caso seja apenas um inteiro local
     } else {
         fstack[offset] = value;
     }
@@ -242,8 +263,10 @@ void run_vdecl(AST* ast) {
     int var_index = get_data(ast);
     int var_size = get_var_size(var_table, var_index);
 
+    // Eh setado o offset da variavel de acordo com o topo da pilha
     set_var_offset(var_table, var_index, ftop);
 
+    // Atualizacao do topo de fstack de acordo com o tamanho da variavel
     if (var_size > 0) {
         ftop += var_size;
     } else {
@@ -264,24 +287,25 @@ void run_vuse(AST* ast) {
         if (get_child_count(ast) > 0) {
             rec_run_ast(get_child(ast, 0));
             int step = pop();
-            //printf("offset: %d, step: %d, value: %d\n", fstack[offset], step, fstack[fstack[offset] + step]);
+            // Na posicao de memoria fstack[offset] esta armazenado o offset
+            // da primeira posicao do vetor apontado
             push(fstack[fstack[offset] + step]);
         // Caso estejamos passando o vetor como referencia
         } else {
             push(fstack[offset]);
         }
-    // Caso seja um vetor estatico
+    // Caso seja um vetor local
     } else if (var_size > 0) {
         // Caso estejamos acessando algum valor desse vetor
         if (get_child_count(ast) > 0) {
             rec_run_ast(get_child(ast, 0));
             int step = pop();
             push(fstack[offset + step]);
-        // Caso estejamos passando o vetor como referencia
+        // Caso estejamos passando o vetor local como referencia
         } else {
             push(offset);
         }
-    // Caso seja apenas um inteiro
+    // Caso seja apenas um inteiro local
     } else {
         push(fstack[offset]);
     }
@@ -290,9 +314,11 @@ void run_vuse(AST* ast) {
 void run_flist(AST* ast) {
     trace("flist");
 
+    // Inicializacao do frame da main
     ftop = 0;
     fbase = 0;
 
+    // Executa a main
     rec_run_ast(get_child(ast, get_child_count(ast) - 1));
 }
 
@@ -310,6 +336,8 @@ void run_fdecl(AST* ast) {
 void run_fheader(AST* ast) {
     trace("fheader");
 
+    // Executa param_list para que os valores da chamada de funcao sejam
+    // atribuidos as suas respectivas variaveis
     rec_run_ast(get_child(ast, 1));
 }
 
@@ -332,14 +360,16 @@ void run_plist(AST* ast) {
     int size = get_child_count(ast);
 
     for (int i = size - 1; i >= 0; i--) {
+        // Para cada parametro, uma variavel eh declarada
         AST* param = get_child(ast, i);
         rec_run_ast(param);
 
+        // Com a variavel ja criada, podemos atualizar o valor na memoria
         int var_index = get_data(param);
         int offset = get_var_offset(var_table, var_index);
 
+        // Este valor pode ser uma referencia para outra posicao de memoria ou nao
         fstack[offset] = pop();
-        // printf("offset: %d, pop: %d, new_value: %d\n", offset, fstack[offset], fstack[offset]);
     }
 }
 
@@ -351,17 +381,17 @@ void run_fcall(AST* ast) {
     AST* arg_list = get_child(ast, 0);
     rec_run_ast(arg_list);
 
-    // Executa o header da funcao chamada para que as variaveis
-    // sejam criadas e assim possamos atribuir os valores da lista
-    // de argumentos de fcall para as variaveis de fhead
+    // Criamos um novo frame para nova chamada de funcao
     fstack[ftop] = fbase;
     fbase = ftop++;
 
     int index = get_data(ast);
     AST* func_ast = get_func_ast(func_table, index);
 
+    // Executa efetivamente a funcao e causa os efeitos colaterais necessarios
     rec_run_ast(func_ast);
 
+    // Ao fim da execucao da funcao, podemos voltar para o frame anterior
     ftop = fbase;
     fbase = fstack[fbase];
 }
