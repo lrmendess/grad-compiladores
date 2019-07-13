@@ -225,15 +225,15 @@ void run_assign(AST* ast) {
         int step = pop();
         // Na posicao de memoria fstack[offset] esta armazenado o offset
         // da primeira posicao do vetor apontado
-        fstack[fstack[offset] + step] = value;
+        fstack[fstack[fbase + offset] + step] = value;
     // Caso seja um vetor local
     } else if (var_size > 0) {
         rec_run_ast(get_child(var_node, 0));
         int step = pop();
-        fstack[offset + step] = value;
+        fstack[fbase + offset + step] = value;
     // Caso seja apenas um inteiro local
     } else {
-        fstack[offset] = value;
+        fstack[fbase + offset] = value;
     }
 }
 
@@ -264,7 +264,7 @@ void run_vdecl(AST* ast) {
     int var_size = get_var_size(var_table, var_index);
 
     // Eh setado o offset da variavel de acordo com o topo da pilha
-    set_var_offset(var_table, var_index, ftop);
+    set_var_offset(var_table, var_index, ftop - fbase);
 
     // Atualizacao do topo de fstack de acordo com o tamanho da variavel
     if (var_size > 0) {
@@ -289,10 +289,10 @@ void run_vuse(AST* ast) {
             int step = pop();
             // Na posicao de memoria fstack[offset] esta armazenado o offset
             // da primeira posicao do vetor apontado
-            push(fstack[fstack[offset] + step]);
+            push(fstack[fstack[fbase + offset] + step]);
         // Caso estejamos passando o vetor como referencia
         } else {
-            push(fstack[offset]);
+            push(fstack[fbase + offset]);
         }
     // Caso seja um vetor local
     } else if (var_size > 0) {
@@ -300,14 +300,14 @@ void run_vuse(AST* ast) {
         if (get_child_count(ast) > 0) {
             rec_run_ast(get_child(ast, 0));
             int step = pop();
-            push(fstack[offset + step]);
+            push(fstack[fbase + offset + step]);
         // Caso estejamos passando o vetor local como referencia
         } else {
-            push(offset);
+            push(fbase + offset);
         }
     // Caso seja apenas um inteiro local
     } else {
-        push(fstack[offset]);
+        push(fstack[fbase + offset]);
     }
 }
 
@@ -369,7 +369,7 @@ void run_plist(AST* ast) {
         int offset = get_var_offset(var_table, var_index);
 
         // Este valor pode ser uma referencia para outra posicao de memoria ou nao
-        fstack[offset] = pop();
+        fstack[fbase + offset] = pop();
     }
 }
 
